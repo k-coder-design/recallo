@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="1024" height="1024">
-  <!-- Значок Recallo: Mobile (B1 «Curl», 01.11.2026): карточка слова скользит по закручивающейся волне на закате.
-       Цвета — из темы приложения. Квадрат без скруглений: iOS скругляет значок сама. PNG — scripts/render-mobile-icons.swift. -->
+  <!-- Recallo: Mobile icon (B1 "Curl", 2026-11-01): a word card riding a curling wave at sunset.
+       Colors come from the app theme. A square without rounding: iOS rounds the icon itself. PNGs: scripts/render-mobile-icons.swift. -->
   <rect width="100" height="100" fill="#0e4f5c"/>
   <circle cx="74" cy="22" r="11" fill="#e8735a"/>
   <path d="M0 100 V68 C18 64 30 52 40 38 C50 24 70 16 86 24 C97 30 98 44 90 50 C84 54 76 50 78 43 C70 46 64 58 70 70 C76 82 90 86 100 84 V100Z" fill="#4fb3a9"/>
