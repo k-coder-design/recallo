@@ -1,0 +1,9 @@
+node_modules/
+out/
+dist/
+*.log
+.DS_Store
+*.tsbuildinfo
+
+# Локальные настройки Claude Code (пути этого Mac)
+.claude/settings.local.json

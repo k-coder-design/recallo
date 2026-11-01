@@ -1,0 +1,89 @@
+{
+  "name": "recallo",
+  "productName": "Recallo",
+  "version": "0.11.2",
+  "private": true,
+  "description": "Десктопное приложение для запоминания слов и фраз на английском и испанском",
+  "main": "./out/main/index.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build && npm run build:mcp",
+    "start": "electron-vite preview",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json && tsc --noEmit -p tsconfig.mobile.json",
+    "dev:mobile": "vite --config vite.mobile.config.ts",
+    "build:mobile": "vite build --config vite.mobile.config.ts",
+    "test": "cross-env ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs run",
+    "test:watch": "cross-env ELECTRON_RUN_AS_NODE=1 electron node_modules/vitest/vitest.mjs",
+    "import:duocards": "esbuild scripts/import-duocards.ts --bundle --platform=node --format=cjs --external:better-sqlite3 --outfile=out/scripts/import-duocards.cjs --log-level=warning && cross-env ELECTRON_RUN_AS_NODE=1 electron out/scripts/import-duocards.cjs",
+    "import:set": "esbuild scripts/import-set.ts --bundle --platform=node --format=cjs --external:better-sqlite3 --outfile=out/scripts/import-set.cjs --log-level=warning && cross-env ELECTRON_RUN_AS_NODE=1 electron out/scripts/import-set.cjs",
+    "postinstall": "electron-builder install-app-deps",
+    "dist:mac": "npm run build && electron-builder --mac --dir && node scripts/mac-app.mjs sign",
+    "install:mac": "npm run dist:mac && node scripts/mac-app.mjs install",
+    "build:mcp": "esbuild src/mcp/index.ts --bundle --platform=node --format=cjs --outfile=out/mcp/index.cjs --log-level=warning",
+    "release:mac": "npm run build && electron-builder --mac dmg --arm64 --x64",
+    "kit:mac": "bash scripts/make-kit.sh"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "ts-fsrs": "^5.4.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@sqlite.org/sqlite-wasm": "3.53.4-build2",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "cmu-pronouncing-dictionary": "^3.0.0",
+    "cross-env": "^10.0.0",
+    "electron": "^44.9.3",
+    "electron-builder": "^26.0.0",
+    "electron-vite": "^5.0.0",
+    "emojibase-data": "^17.0.0",
+    "esbuild": "^0.25.12",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.7",
+    "vitest": "^4.1.12"
+  },
+  "allowScripts": {
+    "esbuild@0.25.12": true,
+    "esbuild@0.28.2": true,
+    "electron-winstaller": false
+  },
+  "build": {
+    "appId": "app.recallo.desktop",
+    "productName": "Recallo",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "!out/scripts/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "**/*.node"
+    ],
+    "mac": {
+      "target": [
+        "dir"
+      ],
+      "category": "public.app-category.education",
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false
+    },
+    "dmg": {
+      "title": "Recallo ${version}",
+      "artifactName": "Recallo-${version}-${arch}.dmg"
+    }
+  }
+}

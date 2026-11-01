@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "types": ["node", "vite/client"],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "noEmit": true
+  },
+  "include": ["src/mobile/**/*", "src/renderer/src/**/*", "src/shared/**/*", "src/main/domain/**/*", "src/main/db/**/*", "src/main/emoji/**/*", "src/main/transcription/**/*", "src/main/import/**/*", "src/main/services.ts"],
+  "exclude": ["src/**/*.test.ts", "src/main/db/database.ts", "src/main/db/testDatabase*.ts", "src/main/domain/test-helpers.ts"]
+}

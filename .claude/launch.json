@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "mobile",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "preview", "--config", "vite.mobile.config.ts", "--port", "4173", "--strictPort", "--host", "127.0.0.1"],
+      "port": 4173
+    }
+  ]
+}

@@ -1,0 +1,148 @@
+{
+  "name": "Movie",
+  "description": "Words to describe films",
+  "spaceId": "en",
+  "source": "Quizlet set «movie» (https://quizlet.com/_fodc8c), PDF export provided on 23.10.2026. Examples and emoji written for Recallo on 24.10.2026.",
+  "note": "First set for MVP-2. Duplicates with existing cards are removed here and re-checked by the import script.",
+  "removedDuplicates": [
+    { "term": "overrated", "reason": "already exists in English cards with the same meaning (переоцененный)" }
+  ],
+  "cards": [
+    {
+      "term": "dramatic",
+      "meaning": "драматичный (full of strong emotions or actions)",
+      "emoji": "🎭",
+      "examples": [
+        { "text": "The film has a dramatic ending that nobody expected.", "translation": "У фильма драматичная концовка, которую никто не ожидал." }
+      ]
+    },
+    {
+      "term": "charming",
+      "meaning": "очаровательный (pleasant and attractive in a sweet way)",
+      "emoji": "🥰",
+      "examples": [
+        { "text": "It's a charming little comedy about two old friends.", "translation": "Это очаровательная небольшая комедия о двух старых друзьях." }
+      ]
+    },
+    {
+      "term": "thrilling",
+      "meaning": "захватывающий (very exciting and full of action)",
+      "emoji": "🎢",
+      "examples": [
+        { "text": "The car chase in the second half is absolutely thrilling.", "translation": "Погоня на машинах во второй половине просто захватывающая." }
+      ]
+    },
+    {
+      "term": "inspiring",
+      "meaning": "вдохновляющий (makes you feel motivated or gives you good ideas)",
+      "emoji": "🌟",
+      "examples": [
+        { "text": "It's an inspiring true story about a teacher who changed her students' lives.", "translation": "Это вдохновляющая реальная история об учительнице, которая изменила жизни своих учеников." }
+      ]
+    },
+    {
+      "term": "lighthearted",
+      "meaning": "беззаботный (fun and not serious)",
+      "emoji": "🎈",
+      "examples": [
+        { "text": "I wanted something lighthearted after a long week, so we watched a rom-com.", "translation": "После долгой недели хотелось чего-то беззаботного, поэтому мы посмотрели романтическую комедию." }
+      ]
+    },
+    {
+      "term": "intense",
+      "meaning": "напряженный, интенсивный (very strong and powerful, often making you feel tense)",
+      "emoji": "😰",
+      "examples": [
+        { "text": "The last twenty minutes are so intense that I couldn't look away.", "translation": "Последние двадцать минут такие напряжённые, что я не могла отвести взгляд." }
+      ]
+    },
+    {
+      "term": "moving",
+      "meaning": "трогательный (makes you feel strong emotions like sadness or happiness)",
+      "emoji": "🥹",
+      "examples": [
+        { "text": "The scene where he finally meets his father is really moving.", "translation": "Сцена, где он наконец встречает отца, очень трогательная." }
+      ]
+    },
+    {
+      "term": "hilarious",
+      "meaning": "очень смешной (very, very funny)",
+      "emoji": "😂",
+      "examples": [
+        { "text": "The dialogue is hilarious — the whole cinema was laughing.", "translation": "Диалоги очень смешные — смеялся весь зал." }
+      ]
+    },
+    {
+      "term": "striking",
+      "meaning": "поразительный (very impressive)",
+      "emoji": "🤩",
+      "examples": [
+        { "text": "The film's visuals are striking, especially the desert scenes.", "translation": "Визуальный ряд фильма поразительный, особенно сцены в пустыне." }
+      ]
+    },
+    {
+      "term": "cringe-worthy",
+      "meaning": "кринжовый (so awkward or embarrassing that it makes you uncomfortable)",
+      "emoji": "🫣",
+      "examples": [
+        { "text": "The romantic speech at the end was so cringe-worthy.", "translation": "Романтическая речь в конце была такой кринжовой." }
+      ]
+    },
+    {
+      "term": "thought-provoking",
+      "meaning": "заставляющий задуматься (makes you think seriously about something important)",
+      "emoji": "💭",
+      "examples": [
+        { "text": "It's a thought-provoking documentary about life online.", "translation": "Это документальный фильм о жизни в интернете, который заставляет задуматься." }
+      ]
+    },
+    {
+      "term": "incredible",
+      "meaning": "невероятный (amazing)",
+      "emoji": "👏",
+      "examples": [
+        { "text": "The special effects are incredible for such a low budget.", "translation": "Спецэффекты невероятные для такого маленького бюджета." }
+      ]
+    },
+    {
+      "term": "trivial",
+      "meaning": "банальный",
+      "emoji": "🥱",
+      "examples": [
+        { "text": "The plot felt trivial and predictable — we've seen this story a hundred times.", "translation": "Сюжет показался банальным и предсказуемым — мы видели эту историю сотню раз." }
+      ]
+    },
+    {
+      "term": "second-rate",
+      "meaning": "второсортный, посредственный (not very good, lower quality)",
+      "emoji": "🥈",
+      "examples": [
+        { "text": "The sequel is just a second-rate copy of the original movie.", "translation": "Сиквел — просто второсортная копия оригинального фильма." }
+      ]
+    },
+    {
+      "term": "dull",
+      "meaning": "скучный (boring and not interesting)",
+      "emoji": "😴",
+      "examples": [
+        { "text": "The first hour is a bit dull, but it gets much better.", "translation": "Первый час немного скучный, но потом становится намного лучше." }
+      ]
+    },
+    {
+      "term": "gripping",
+      "meaning": "захватывающий, увлекательный (so interesting that you can't stop watching)",
+      "emoji": "🍿",
+      "examples": [
+        { "text": "It's a gripping thriller — I watched it in one go.", "translation": "Это захватывающий триллер — я посмотрела его на одном дыхании." }
+      ]
+    },
+    {
+      "term": "remarkable",
+      "meaning": "замечательный, выдающийся (very special or surprising)",
+      "emoji": "🎖️",
+      "examples": [
+        { "text": "The lead actress gives a remarkable performance.", "translation": "Исполнительница главной роли играет просто замечательно." }
+      ]
+    }
+  ]
+}
