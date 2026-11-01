@@ -1,6 +1,8 @@
 // Recallo: Mobile icons from build/icon-mobile.svg: 180 (apple-touch-icon), 192 and 512 px for the manifest.
 // Run: swift scripts/render-mobile-icons.swift (drawn by the macOS system SVG engine, no third-party packages).
 // File names carry the icon's name: iOS and Safari cache icons by URL, so a new icon needs new names.
+// The previous names get the same picture too: a page saved for offline use may still point to them,
+// and a missing icon makes iOS draw a placeholder letter on the Home Screen.
 import AppKit
 
 let root = URL(fileURLWithPath: CommandLine.arguments.count > 1 ? CommandLine.arguments[1] : FileManager.default.currentDirectoryPath)
@@ -8,7 +10,9 @@ let svg = root.appendingPathComponent("build/icon-mobile.svg")
 let outDir = root.appendingPathComponent("src/mobile/public/icons")
 guard let image = NSImage(contentsOf: svg) else { fatalError("Cannot read \(svg.path)") }
 
-for (size, name) in [(180, "apple-touch-icon-surf.png"), (192, "icon-192-surf.png"), (512, "icon-512-surf.png")] {
+let files = [(180, "apple-touch-icon-surf.png"), (192, "icon-192-surf.png"), (512, "icon-512-surf.png"),
+             (180, "apple-touch-icon.png"), (192, "icon-192.png"), (512, "icon-512.png")]
+for (size, name) in files {
   let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: size, pixelsHigh: size, bitsPerSample: 8,
                              samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
                              bytesPerRow: 0, bitsPerPixel: 0)!
