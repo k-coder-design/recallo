@@ -3308,14 +3308,18 @@ select {
   padding-left: 18px;
 }
 
-/*
- * Home Screen app on iOS: the viewport may be shorter than the screen by the status bar height
- * (--viewport-gap, measured in src/mobile/viewport.ts; 0 elsewhere). iOS frosts that strip, so nothing
- * readable goes there: only the tab bar's color continues into it. The home indicator sits inside the strip,
- * so the bottom insets shrink by the gap (--safe-bottom).
- */
 :root {
-  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--viewport-gap, 0px)));
+  --safe-bottom: env(safe-area-inset-bottom);
+}
+
+/*
+ * Home Screen app on iOS (class set by src/mobile/viewport.ts). While the page is shorter than the screen,
+ * iOS gives it a viewport shorter by the status bar height (WebKit bug 301108): the tabs stop above the
+ * real edge and a strip shows below them. A page at least as tall as the screen gets the full viewport;
+ * min() keeps the page from growing past the screen where the top inset is 0 (a solid status bar).
+ */
+html.standalone {
+  height: min(100lvh, calc(100% + env(safe-area-inset-top)));
 }
 
 html.standalone,
@@ -3323,23 +3327,30 @@ html.standalone body {
   overflow: hidden;
 }
 
-.phone .tabbar::after {
+/*
+ * iOS 26+ blurs the top edge of a Home Screen app over the header. A solid element painted at the very top
+ * of the screen stops it; it has the header's color (the page's color during a session), so it is not seen.
+ */
+html.standalone .phone::before {
   content: '';
-  position: absolute;
-  top: 100%;
+  position: fixed;
+  top: 0;
   right: 0;
   left: 0;
-  height: var(--viewport-gap, 0px);
-  background: inherit;
+  z-index: 50;
+  /* At least 10px: with a solid status bar that is the header's own top padding. */
+  height: max(env(safe-area-inset-top), 10px);
+  background: var(--deep);
+  pointer-events: none;
 }
 
-.phone .overlay {
-  bottom: calc(-1 * var(--viewport-gap, 0px));
+html.standalone .phone.in-session::before {
+  background: var(--bg);
 }
 
 /* During a session the answer buttons own the bottom of the screen: the update prompt moves to the top. */
 body:has(.app.in-session) .update-toast {
-  top: calc(env(safe-area-inset-top) + 8px);
+  top: calc(max(env(safe-area-inset-top), 10px) + 8px);
   bottom: auto;
 }
 

@@ -3,8 +3,8 @@
 import './bridge'
 import '../renderer/src/main'
 import { keepStorage, startOffline } from './offline'
-import { fitStandaloneViewport } from './viewport'
+import { markStandalone } from './viewport'
 
-fitStandaloneViewport()
+markStandalone()
 startOffline()
 keepStorage()
