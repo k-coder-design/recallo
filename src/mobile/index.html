@@ -4,13 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="color-scheme" content="light dark" />
-    <meta name="theme-color" content="#0e4f5c" />
+    <!-- Status bar color: the header color, light and dark (lib/theme.ts updates it for a manual theme). -->
+    <meta name="theme-color" content="#0e4f5c" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#072028" media="(prefers-color-scheme: dark)" />
     <!-- A personal link for me and friends: keep it out of search engines. -->
     <meta name="robots" content="noindex, nofollow" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="Recallo" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- A solid status bar: with a see-through one iOS shortens the app and frosts its top and bottom edges. -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon-surf.png" />
     <link rel="icon" type="image/png" href="./icons/icon-192-surf.png" />

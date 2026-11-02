@@ -2887,7 +2887,7 @@ select {
   grid-template-columns: repeat(4, 1fr);
   gap: 0;
   margin: 0;
-  padding: 6px 8px calc(env(safe-area-inset-bottom) + 6px);
+  padding: 6px 8px calc(var(--safe-bottom) + 6px);
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
@@ -2930,7 +2930,7 @@ select {
 }
 
 .phone .content {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 68px);
+  padding-bottom: calc(var(--safe-bottom) + 68px);
 }
 
 .phone.in-session .topbar,
@@ -2962,7 +2962,7 @@ select {
   bottom: 0;
   z-index: 5;
   margin: auto -16px 0;
-  padding: 14px 16px calc(env(safe-area-inset-bottom) + 12px);
+  padding: 14px 16px calc(var(--safe-bottom) + 12px);
   background: linear-gradient(to bottom, transparent, var(--bg) 16px);
 }
 
@@ -3017,7 +3017,7 @@ select {
 /* Action menu at the bottom of the screen (ActionSheet, W3) — like the iOS system menu. */
 .sheet-overlay {
   align-items: flex-end;
-  padding: 0 8px calc(env(safe-area-inset-bottom) + 8px);
+  padding: 0 8px calc(var(--safe-bottom) + 8px);
 }
 
 .action-sheet {
@@ -3203,7 +3203,7 @@ select {
 .fab {
   position: fixed;
   right: 18px;
-  bottom: calc(env(safe-area-inset-bottom) + 76px);
+  bottom: calc(var(--safe-bottom) + 76px);
   z-index: 9;
   width: 56px;
   height: 56px;
@@ -3235,7 +3235,7 @@ select {
 
 .phone .modal-footer {
   flex-wrap: wrap;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 16px);
+  padding-bottom: calc(var(--safe-bottom) + 16px);
 }
 
 .phone .modal-footer .button {
@@ -3271,7 +3271,7 @@ select {
 .update-toast {
   position: fixed;
   right: 12px;
-  bottom: calc(env(safe-area-inset-bottom) + 76px);
+  bottom: calc(var(--safe-bottom) + 76px);
   left: 12px;
   z-index: 40;
   display: flex;
@@ -3317,30 +3317,29 @@ select {
 
 /*
  * Home Screen app on iOS: the viewport may be shorter than the screen by the status bar height
- * (--viewport-gap, measured in src/mobile/viewport.ts; 0 elsewhere). The app, the tabs, the "+" button,
- * dialogs and the update prompt extend down by the gap, so nothing stops above the real screen edge.
+ * (--viewport-gap, measured in src/mobile/viewport.ts; 0 elsewhere). iOS frosts that strip, so nothing
+ * readable goes there: only the tab bar's color continues into it. The home indicator sits inside the strip,
+ * so the bottom insets shrink by the gap (--safe-bottom).
  */
+:root {
+  --safe-bottom: max(0px, calc(env(safe-area-inset-bottom) - var(--viewport-gap, 0px)));
+}
+
 html.standalone,
 html.standalone body {
   overflow: hidden;
 }
 
-.app.phone {
-  height: calc(100% + var(--viewport-gap, 0px));
-}
-
-.phone .tabbar {
-  bottom: calc(-1 * var(--viewport-gap, 0px));
+.phone .tabbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  left: 0;
+  height: var(--viewport-gap, 0px);
+  background: inherit;
 }
 
 .phone .overlay {
   bottom: calc(-1 * var(--viewport-gap, 0px));
-}
-
-.phone .fab {
-  bottom: calc(env(safe-area-inset-bottom) + 76px - var(--viewport-gap, 0px));
-}
-
-.update-toast {
-  bottom: calc(env(safe-area-inset-bottom) + 76px - var(--viewport-gap, 0px));
 }
