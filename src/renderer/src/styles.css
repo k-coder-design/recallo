@@ -3336,3 +3336,9 @@ html.standalone body {
 .phone .overlay {
   bottom: calc(-1 * var(--viewport-gap, 0px));
 }
+
+/* During a session the answer buttons own the bottom of the screen: the update prompt moves to the top. */
+body:has(.app.in-session) .update-toast {
+  top: calc(env(safe-area-inset-top) + 8px);
+  bottom: auto;
+}

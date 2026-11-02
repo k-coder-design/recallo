@@ -1,37 +1,32 @@
 /**
- * Работа без сети и обновления (W4). Service worker (sw.js, создаётся при сборке) хранит всё приложение
- * на телефоне. Когда на сайте появилась новая версия, она скачивается в фоне и ждёт: внизу экрана
- * появляется «New version ready · Update». Посреди сессии приложение само не перезагружается.
+ * Offline mode and updates (W4). The service worker (sw.js, generated at build time) keeps the whole app
+ * on the phone. A new version downloads in the background and takes over by itself (sw.js calls skipWaiting);
+ * the page then reloads to it — unless a Study session is running: then "New version ready · Reload" waits at
+ * the bottom, so a session is never interrupted. An app that missed an update gets it on its next launch.
  */
 export function startOffline(): void {
-  // В режиме разработки кэш мешал бы видеть изменения.
+  // In development the cache would hide changes.
   if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return
 
+  // The first install (no service worker controlled the page yet) is not an update: nothing to reload.
+  const hadController = Boolean(navigator.serviceWorker.controller)
   let reloading = false
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (reloading) return
+    if (!hadController || reloading) return
+    if (document.querySelector('.app.in-session')) return offerReload()
     reloading = true
     window.location.reload()
   })
 
   void navigator.serviceWorker.register('./sw.js').then((registration) => {
-    // Новая версия уже скачана и ждёт (например, приложение открыли после обновления сайта).
-    if (registration.waiting && navigator.serviceWorker.controller) offerUpdate(registration.waiting)
-    registration.addEventListener('updatefound', () => {
-      const incoming = registration.installing
-      incoming?.addEventListener('statechange', () => {
-        // Первая установка (страницей ещё никто не управляет) — не обновление.
-        if (incoming.state === 'installed' && navigator.serviceWorker.controller) offerUpdate(incoming)
-      })
-    })
-    // Проверять новую версию при каждом возвращении в приложение.
+    // Check for a new version every time the user returns to the app.
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') void registration.update()
     })
   })
 }
 
-function offerUpdate(waiting: ServiceWorker): void {
+function offerReload(): void {
   if (document.querySelector('.update-toast')) return
   const toast = document.createElement('div')
   toast.className = 'update-toast'
@@ -40,18 +35,15 @@ function offerUpdate(waiting: ServiceWorker): void {
   text.textContent = 'New version ready'
   const button = document.createElement('button')
   button.type = 'button'
-  button.textContent = 'Update'
-  button.addEventListener('click', () => {
-    button.disabled = true
-    waiting.postMessage('skipWaiting')
-  })
+  button.textContent = 'Reload'
+  button.addEventListener('click', () => window.location.reload())
   toast.append(text, button)
   document.body.append(toast)
 }
 
 /**
- * Попросить браузер хранить данные постоянно: иначе iOS может очистить хранилище сайта,
- * которым давно не пользовались. У приложения на экране «Домой» обычно разрешается сразу.
+ * Ask the browser to keep the data persistently: otherwise iOS may clear the storage of a site
+ * that has not been used for a long time. For a Home Screen app it is usually granted right away.
  */
 export function keepStorage(): void {
   void navigator.storage?.persist?.().catch(() => undefined)
