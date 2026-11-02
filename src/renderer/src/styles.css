@@ -1,4 +1,4 @@
-/* Тема «серфинг» (D41): кремовый песок, бирюзовая вода, коралловые акценты ретро-постера. */
+/* "Surf" theme (D41): cream sand, turquoise water, coral accents of a retro poster. */
 :root {
   --bg: #fbf6ec;
   --surface: #fffdf8;
@@ -32,7 +32,7 @@
   --shadow: 0 1px 2px rgb(14 79 92 / 0.06), 0 10px 28px rgb(14 79 92 / 0.08);
   --radius: 16px;
   --display-font: 'Futura', 'Avenir Next', 'Trebuchet MS', sans-serif;
-  /* Данные: проверены валидатором на фоне карточек (D23, D41) */
+  /* Data: checked with the validator against the card backgrounds (D23, D41) */
   --series-remembered: #0b8e84;
   --series-forgot: #dd5f45;
   --series-introduced: #7159d1;
@@ -45,8 +45,8 @@
   color-scheme: light;
 }
 
-/* Тёмная тема — по атрибуту data-theme, который ставит lib/theme.ts (D58): так её можно выбрать
-   вручную и в браузере телефона, где системную тему страница сменить не может. */
+/* Dark theme — by the data-theme attribute set by lib/theme.ts (D58): so it can be chosen
+   manually, including in the phone's browser, where a page cannot change the system theme. */
 :root[data-theme='dark'] {
   --bg: #0b2a31;
   --surface: #113740;
@@ -135,7 +135,7 @@ h2 {
   height: 100%;
 }
 
-/* Верхняя панель */
+/* Top bar */
 .topbar {
   position: relative;
   z-index: 2;
@@ -148,7 +148,7 @@ h2 {
   -webkit-app-region: drag;
 }
 
-/* Нижний край панели — волна. */
+/* The bar's bottom edge is a wave. */
 .topbar::after {
   content: '';
   position: absolute;
@@ -265,7 +265,7 @@ h2 {
   margin-bottom: 20px;
 }
 
-/* Кнопки */
+/* Buttons */
 .button {
   display: inline-flex;
   align-items: center;
@@ -369,8 +369,8 @@ h2 {
 }
 
 /*
- * Подсказки у кнопок-значков без подписи (атрибут data-tooltip): свои, а не системные title —
- * появляются быстро и в стиле приложения. Элементу нужно position: relative или absolute.
+ * Tooltips for icon-only buttons (data-tooltip attribute): our own instead of system titles —
+ * they appear quickly and match the app. The element needs position: relative or absolute.
  */
 [data-tooltip]::after {
   content: attr(data-tooltip);
@@ -411,7 +411,7 @@ h2 {
   }
 }
 
-/* Текст */
+/* Text */
 .muted {
   color: var(--muted);
 }
@@ -449,7 +449,7 @@ h2 {
   flex: 1;
 }
 
-/* Список карточек */
+/* Card list */
 .card-list {
   list-style: none;
   margin: 0;
@@ -535,7 +535,7 @@ h2 {
   margin: 4px 0;
 }
 
-/* Модальные окна и формы */
+/* Modals and forms */
 .overlay {
   position: fixed;
   inset: 0;
@@ -687,7 +687,7 @@ textarea:focus {
   background: var(--warn-soft);
 }
 
-/* Обучение */
+/* Study */
 .start-panel {
   display: flex;
   flex-direction: column;
@@ -755,7 +755,7 @@ textarea:focus {
   min-width: 0;
 }
 
-/* Длинное имя набора обрезается многоточием; полное — во всплывающей подсказке. */
+/* A long set name is cut with an ellipsis; the full name is in the tooltip. */
 .study-bar .scope-chip {
   min-width: 0;
   max-width: 240px;
@@ -800,7 +800,7 @@ textarea:focus {
   gap: 8px;
 }
 
-/* Кнопки шапки — тише и меньше основных: на экране главное — карточка. */
+/* Bar buttons are quieter and smaller than the main ones: the card is what matters on screen. */
 .bar-button {
   position: relative;
   display: inline-flex;
@@ -920,7 +920,7 @@ textarea:focus {
   font-family: 'Charis SIL', 'Doulos SIL', 'Lucida Grande', 'Segoe UI', sans-serif;
 }
 
-/* Карточка Study: подписанные блоки, явное задание, заметный пропуск */
+/* Study card: labelled blocks, a clear task, a visible gap */
 .card-face {
   display: flex;
   flex-direction: column;
@@ -961,7 +961,7 @@ textarea:focus {
   white-space: pre-line;
 }
 
-/* Пропуск на месте слова: видно, что именно нужно вспомнить. */
+/* The gap in place of the word: shows exactly what to recall. */
 .blank {
   display: inline-block;
   min-width: 3.2em;
@@ -1350,7 +1350,7 @@ mark.answer {
   white-space: nowrap;
 }
 
-/* Карточка Study v2 (D28): минималистичная цветная сторона слова, читаемый оборот */
+/* Study card v2 (D28): a minimal colored word side, a readable back */
 :root {
   --reading-font: ui-serif, 'New York', 'Iowan Old Style', 'Charter', Georgia, serif;
   --ipa-font: 'Charis SIL', 'Doulos SIL', 'Lucida Grande', 'Segoe UI', sans-serif;
@@ -1395,7 +1395,7 @@ mark.answer {
   filter: brightness(0.95);
 }
 
-/* Карандаш в углу карточки. */
+/* The pencil in the card's corner. */
 .card-edit {
   position: absolute;
   top: 14px;
@@ -1416,7 +1416,7 @@ mark.answer {
   color: var(--text);
 }
 
-/* Корзина левее карандаша; на лицевой стороне карандаша нет, и она занимает угол сама. */
+/* The trash can sits left of the pencil; the front has no pencil, so it takes the corner itself. */
 .card-delete {
   font-size: 15px;
   filter: grayscale(1);
@@ -1433,7 +1433,7 @@ mark.answer {
   opacity: 1;
 }
 
-/* Оборот: ответ сверху, значение и примеры — книжным шрифтом для чтения. */
+/* Back side: the answer on top, meaning and examples in a book font for reading. */
 .answer-head {
   display: flex;
   flex-direction: column;
@@ -1485,7 +1485,7 @@ mark.answer {
   letter-spacing: 0.1em;
 }
 
-/* Выбор эмодзи в редакторе */
+/* Emoji picker in the editor */
 .emoji-field {
   display: flex;
   gap: 14px;
@@ -1497,7 +1497,7 @@ mark.answer {
   flex: none;
   align-items: center;
   justify-content: center;
-  /* Несколько знаков растягивают рамку вширь, одиночное эмодзи — в квадрате 64×64. */
+  /* Several characters stretch the frame wider; a single emoji fits a 64×64 square. */
   min-width: 64px;
   height: 64px;
   padding: 0 8px;
@@ -1560,8 +1560,8 @@ mark.answer {
 }
 
 /*
- * Эмодзи может быть из нескольких знаков («👨‍👩» macOS рисует двумя): место растёт по содержимому,
- * а не налезает на слово. Одиночное эмодзи занимает те же 1.5em, что и раньше.
+ * An emoji may consist of several characters (macOS draws "👨‍👩" as two): the space grows with the content
+ * instead of overlapping the word. A single emoji takes the same 1.5em as before.
  */
 .list-emoji {
   display: inline-block;
@@ -1570,7 +1570,7 @@ mark.answer {
   white-space: nowrap;
 }
 
-/* Заглавная картинка карточки (D31): одно эмодзи по центру сверху на обеих сторонах. */
+/* The card's hero image (D31): one emoji centered at the top on both sides. */
 .face-hero {
   display: flex;
   justify-content: center;
@@ -1581,7 +1581,7 @@ mark.answer {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Одиночное эмодзи — в круге 92×92, несколько знаков вытягивают круг в овал, а не вылезают из него. */
+  /* A single emoji fits a 92×92 circle; several characters stretch the circle into an oval instead of spilling out. */
   min-width: 92px;
   height: 92px;
   padding: 0 16px;
@@ -1592,7 +1592,7 @@ mark.answer {
   white-space: nowrap;
 }
 
-/* Cards: наборы слева, список справа (MVP-2) */
+/* Cards: sets on the left, list on the right (MVP-2) */
 .page.cards-page {
   display: grid;
   grid-template-columns: 200px minmax(0, 1fr);
@@ -1674,8 +1674,8 @@ mark.answer {
   margin-bottom: 0;
 }
 
-/* Длинное имя набора переносится, а кнопки сохраняют свой размер:
-   если места не хватает, ряд кнопок уходит на следующую строку. */
+/* A long set name wraps, and the buttons keep their size:
+   if there is not enough room, the button row moves to the next line. */
 .cards-main .page-header {
   flex-wrap: wrap;
   gap: 12px 20px;
@@ -1705,7 +1705,7 @@ mark.answer {
   max-width: 420px;
 }
 
-/* Фильтр Cards по статусу: цвета те же, что у значков статуса в списке. */
+/* Cards status filter: the same colors as the status badges in the list. */
 .status-filter {
   display: flex;
   flex-wrap: wrap;
@@ -1713,7 +1713,7 @@ mark.answer {
   margin: 12px 0 4px;
 }
 
-/* :where — чтобы цвета .status-<статус> перебивали серый фон по умолчанию. */
+/* :where — so the .status-<status> colors override the default gray background. */
 :where(.status-filter) button {
   padding: 4px 12px;
   border: 1.5px solid transparent;
@@ -2003,7 +2003,7 @@ select {
   word-break: break-all;
 }
 
-/* Импорт и экспорт (MVP-4) */
+/* Import and export (MVP-4) */
 .import-start ul {
   margin: 8px 0;
   padding-left: 20px;
@@ -2128,7 +2128,7 @@ select {
   margin: 0 0 12px;
 }
 
-/* Серфинг (D41): волна дня, декоративные волны на карточках */
+/* Surf (D41): today's swell, decorative waves on cards */
 .swell-card {
   position: relative;
   width: 100%;
@@ -2288,7 +2288,7 @@ select {
   font-variant-numeric: tabular-nums;
 }
 
-/* Низ карточки — полоса воды; у нового слова — пена на бирюзе. */
+/* The card's bottom is a strip of water; on a new word — foam on turquoise. */
 .swipe-card::after {
   content: '';
   position: absolute;
@@ -2318,7 +2318,7 @@ select {
 
 }
 
-/* Сессия по таймеру (D43) */
+/* Timed session (D43) */
 .session-length {
   display: flex;
   flex-direction: column;
@@ -2374,7 +2374,7 @@ select {
   flex-wrap: wrap;
 }
 
-/* Варианты произношения (D44) */
+/* Pronunciation variants (D44) */
 .pronunciations {
   display: flex;
   flex-wrap: wrap;
@@ -2426,7 +2426,7 @@ select {
   font-size: 14px;
 }
 
-/* Лимит новых слов (MVP-7) */
+/* New-word limit (MVP-7) */
 .limit-list {
   display: flex;
   flex-direction: column;
@@ -2434,7 +2434,7 @@ select {
 }
 
 
-/* Стартовый экран Study: одна карточка настройки сессии */
+/* Study start screen: one session setup card */
 .session-setup {
   display: flex;
   flex-direction: column;
@@ -2484,7 +2484,7 @@ select {
   font-weight: 400;
 }
 
-/* Лимит новых исчерпан посреди сессии: два пути дальше (D55). */
+/* New-word limit reached mid-session: two ways forward (D55). */
 .choice-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2611,7 +2611,7 @@ select {
   align-items: stretch;
 }
 
-/* Режим ввода ответа (MVP-8) */
+/* Typed answer mode (MVP-8) */
 .answer-form {
   display: flex;
   gap: 8px;
@@ -2693,7 +2693,7 @@ select {
   align-items: center;
 }
 
-/* Три настройки сессии: набор на всю ширину, способ ответа и длительность — рядом ниже. */
+/* Three session settings: the set full width, answer mode and length side by side below. */
 .setup-controls {
   grid-template-columns: auto auto;
   justify-content: space-between;
@@ -2722,7 +2722,7 @@ select {
   }
 }
 
-/* Автокопия (MVP-9) */
+/* Automatic backup (MVP-9) */
 .auto-backup {
   display: flex;
   flex-direction: column;
@@ -2747,7 +2747,7 @@ select {
   margin: 0;
 }
 
-/* Первая встреча со словом (D53): вся карточка сразу, бирюзовая рамка и ярлык «New word». */
+/* First meeting with a word (D53): the whole card at once, a turquoise frame and a "New word" label. */
 .swipe-card.new-word-card {
   border-color: var(--intro-from);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--intro-from) 22%, transparent), var(--shadow);
@@ -2770,9 +2770,9 @@ select {
 }
 
 /*
- * Смена карточки после нового слова: прочитанное слово уходит в сторону (из текущего положения —
- * в том числе смахнутого), следующее новое слово «сдаётся» справа, вспоминание поднимается снизу.
- * Правила стоят до переворота: у вспоминания, которое ещё появляется, переворот должен перебить появление.
+ * Card change after a new word: the read word leaves sideways (from its current position —
+ * including a swiped one), the next new word is "dealt" from the right, a recall rises from below.
+ * These rules come before the flip: for a recall that is still appearing, the flip must override the entrance.
  */
 .swipe-card.enter-deal {
   animation: card-enter-deal 280ms cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -2827,7 +2827,7 @@ select {
   }
 }
 
-/* Переворот карточки: лицевая сторона уходит ребром, оборот доворачивается с другой стороны. */
+/* Card flip: the front turns edge-on, the back turns in from the other side. */
 .swipe-card.flip-out {
   animation: card-flip-out 180ms ease-in forwards;
 }
@@ -2862,10 +2862,10 @@ select {
 }
 
 /*
- * Recallo: Mobile (D57, этап W2) — раскладка для iPhone. Правила только под .app.phone:
- * класс ставит телефонная сборка (lib/platform.ts), на Mac ничего не меняется.
- * Вкладки — внизу под большим пальцем; во время сессии шапки и вкладок нет, а кнопки ответа
- * прилипают к низу экрана; учтены вырез и полоска «домой» (safe-area).
+ * Recallo: Mobile (D57, stage W2) — iPhone layout. Rules only under .app.phone:
+ * the class is set by the phone build (lib/platform.ts); nothing changes on the Mac.
+ * Tabs are at the bottom under the thumb; during a session there is no header or tabs, and the answer
+ * buttons stick to the bottom of the screen; the notch and the home indicator (safe area) are respected.
  */
 .phone .topbar {
   gap: 12px;
@@ -2956,7 +2956,7 @@ select {
   padding-bottom: 0;
 }
 
-/* Кнопки ответа прилипают к низу: длинная карточка прокручивается над ними. */
+/* Answer buttons stick to the bottom: a long card scrolls above them. */
 .phone .study-controls {
   position: sticky;
   bottom: 0;
@@ -2984,12 +2984,12 @@ select {
   white-space: nowrap;
 }
 
-/* Клавиш на телефоне нет. */
+/* There are no keys on a phone. */
 .phone .button kbd {
   display: none;
 }
 
-/* iOS увеличивает страницу при фокусе на поле со шрифтом меньше 16 px. */
+/* iOS zooms the page when a field with a font smaller than 16 px gets focus. */
 .phone input,
 .phone select,
 .phone textarea {
@@ -3001,8 +3001,8 @@ select {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* На сенсорном экране наведения нет: у кнопок-значков подсказка не нужна (нажатие делает дело),
-   а у счётчиков ✨ ✓ ✗ подсказка появляется по касанию. */
+/* A touch screen has no hover: icon buttons need no tooltip (the tap does the job),
+   while the ✨ ✓ ✗ counters show their tooltip on tap. */
 @media (hover: none) {
   button[data-tooltip]::after {
     display: none;
@@ -3014,7 +3014,7 @@ select {
   transform: translate(-50%, 0);
 }
 
-/* Меню действий снизу экрана (ActionSheet, W3) — как системное меню iOS. */
+/* Action menu at the bottom of the screen (ActionSheet, W3) — like the iOS system menu. */
 .sheet-overlay {
   align-items: flex-end;
   padding: 0 8px calc(env(safe-area-inset-bottom) + 8px);
@@ -3105,7 +3105,7 @@ select {
   }
 }
 
-/* Cards на телефоне (W3): выбор набора вместо боковой панели, строки в два уровня, «⋯» и кнопка «+». */
+/* Cards on the phone (W3): a set picker instead of the sidebar, two-line rows, "⋯" and a "+" button. */
 .phone .page.cards-page {
   display: block;
 }
@@ -3150,7 +3150,7 @@ select {
   min-height: 44px;
 }
 
-/* Фильтр статусов — одна строка, листается вбок. */
+/* Status filter — one row, scrolls sideways. */
 .phone .status-filter {
   flex-wrap: nowrap;
   margin: 2px -16px 0;
@@ -3199,7 +3199,7 @@ select {
   color: var(--muted);
 }
 
-/* Новая карточка — круглая кнопка над вкладками, под большим пальцем. */
+/* New card — a round button above the tabs, under the thumb. */
 .fab {
   position: fixed;
   right: 18px;
@@ -3221,7 +3221,7 @@ select {
   padding-bottom: 72px;
 }
 
-/* Окна на телефоне — листы снизу на всю ширину. */
+/* Dialogs on the phone — full-width sheets from the bottom. */
 .phone .overlay:not(.sheet-overlay) {
   align-items: flex-end;
   padding: calc(env(safe-area-inset-top) + 12px) 0 0;
@@ -3248,12 +3248,12 @@ select {
   min-height: 44px;
 }
 
-/* Окна и меню — над нижними вкладками и кнопкой «+». */
+/* Dialogs and menus — above the bottom tabs and the "+" button. */
 .phone .overlay {
   z-index: 30;
 }
 
-/* Напоминание о копии на стартовом экране Study (телефон, W4). */
+/* Backup reminder on the Study start screen (phone, W4). */
 .backup-reminder {
   display: flex;
   flex-direction: column;
@@ -3267,7 +3267,7 @@ select {
   text-align: center;
 }
 
-/* «Есть новая версия» — над вкладками (телефон, W4). */
+/* "New version ready" — above the tabs (phone, W4). */
 .update-toast {
   position: fixed;
   right: 12px;
@@ -3295,4 +3295,52 @@ select {
   color: var(--coral-text);
   font: inherit;
   cursor: pointer;
+}
+
+/* Settings → Voices: every voice the device shares with Recallo, for checking a newly installed one. */
+.device-voices {
+  margin-top: 12px;
+  font-size: 14px;
+}
+
+.device-voices summary {
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.device-voice-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  column-gap: 24px;
+  columns: 2 220px;
+}
+
+/*
+ * Home Screen app on iOS: the viewport may be shorter than the screen by the status bar height
+ * (--viewport-gap, measured in src/mobile/viewport.ts; 0 elsewhere). The app, the tabs, the "+" button,
+ * dialogs and the update prompt extend down by the gap, so nothing stops above the real screen edge.
+ */
+html.standalone,
+html.standalone body {
+  overflow: hidden;
+}
+
+.app.phone {
+  height: calc(100% + var(--viewport-gap, 0px));
+}
+
+.phone .tabbar {
+  bottom: calc(-1 * var(--viewport-gap, 0px));
+}
+
+.phone .overlay {
+  bottom: calc(-1 * var(--viewport-gap, 0px));
+}
+
+.phone .fab {
+  bottom: calc(env(safe-area-inset-bottom) + 76px - var(--viewport-gap, 0px));
+}
+
+.update-toast {
+  bottom: calc(env(safe-area-inset-bottom) + 76px - var(--viewport-gap, 0px));
 }

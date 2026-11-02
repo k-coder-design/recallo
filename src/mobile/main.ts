@@ -1,8 +1,10 @@
-// Телефонная сборка (D57): сначала мост window.recallo к Worker с ядром, затем тот же интерфейс, что на Mac.
-// Порядок импортов важен: модули выполняются по порядку, и интерфейс находит мост уже готовым.
+// Phone build (D57): first the window.recallo bridge to the Worker with the core, then the same interface as on the Mac.
+// Import order matters: modules run in order, so the interface finds the bridge ready.
 import './bridge'
 import '../renderer/src/main'
 import { keepStorage, startOffline } from './offline'
+import { fitStandaloneViewport } from './viewport'
 
+fitStandaloneViewport()
 startOffline()
 keepStorage()

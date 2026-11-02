@@ -3,13 +3,13 @@ import type { AgentApiState, AutoBackupState, BackupSummary, NewWordsToday, Open
 import { ALT_ACCENTS, PRIMARY_ACCENTS, type Accent } from '../../../shared/accents'
 import { Modal } from '../components/Modal'
 import { SpeakButton } from '../components/SpeakButton'
-import { canSpeak, chooseVoice, playableLangs, useVoices } from '../lib/tts'
+import { canSpeak, chooseVoice, normalizeLang, playableLangs, useVoices } from '../lib/tts'
 import { call, errorMessage } from '../lib/api'
 import { backupAge, markBackedUp } from '../lib/backupReminder'
 import { IS_PHONE } from '../lib/platform'
 import { applyTheme } from '../lib/theme'
 
-/** Копирование в буфер: Clipboard API, а если он недоступен — через скрытое поле. */
+/** Copy to the clipboard: the Clipboard API, or a hidden field if it is unavailable. */
 async function copyText(value: string): Promise<void> {
   try {
     await navigator.clipboard.writeText(value)
@@ -42,7 +42,7 @@ function CopyButton({ value, label = 'Copy' }: { value: string; label?: string }
 }
 
 export function SettingsPage() {
-  // На iPhone — только то, что там работает (D59): нет Agent API и MCP, автокопии в папку и Finder.
+  // On iPhone — only what works there (D59): no Agent API or MCP, no automatic backup to a folder or Finder.
   return (
     <section className="page settings">
       <h1>Settings</h1>
@@ -60,7 +60,7 @@ export function SettingsPage() {
   )
 }
 
-/** Agent API и подключение агента (MVP-3) — только на Mac. */
+/** Agent API and connecting an agent (MVP-3) — Mac only. */
 function AgentApiPanels() {
   const [state, setState] = useState<AgentApiState | null>(null)
   const [port, setPort] = useState('')
@@ -210,7 +210,7 @@ function AgentApiPanels() {
   )
 }
 
-/** Полная копия с прогрессом и историей и восстановление из неё (MVP-4). */
+/** A full backup with progress and history, and restoring from it (MVP-4). */
 function BackupPanel() {
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -233,7 +233,7 @@ function BackupPanel() {
   const createBackup = () =>
     run(async () => {
       const result = await call('transfer.backup')
-      // На телефоне путь неизвестен: файл ушёл в меню «Поделиться» (Файлы, iCloud Drive, AirDrop).
+      // On the phone the path is unknown: the file went to the Share sheet (Files, iCloud Drive, AirDrop).
       if (result.saved) {
         markBackedUp()
         setMessage(result.path ? `Backup saved to ${result.path}` : 'Backup created.')
@@ -251,7 +251,7 @@ function BackupPanel() {
       if (!pending) return
       await call('transfer.restore', pending.file.content)
       setPending(null)
-      // Данные заменены целиком — перезагружаем интерфейс, чтобы всё перечиталось.
+      // The data was replaced entirely — reload the interface so everything is read again.
       window.location.reload()
     })
 
@@ -307,10 +307,10 @@ function BackupPanel() {
   )
 }
 
-/** Пример для прослушивания: слово, где варианты произношения звучат по-разному. */
+/** A sample to listen to: a word where the pronunciations sound different. */
 const SAMPLES: Record<string, string> = { 'en-US': 'water', 'es-AR': 'Me llamo Lucía', 'es-ES': 'Me llamo Lucía' }
 
-/** Какими системными голосами звучат варианты произношения и как добавить недостающий (D44). */
+/** Which system voices speak each pronunciation and how to add a missing one (D44). */
 function VoicesPanel() {
   const voices = useVoices()
   const accents: Accent[] = [PRIMARY_ACCENTS.en, PRIMARY_ACCENTS.es, ...(ALT_ACCENTS.es ? [ALT_ACCENTS.es] : [])]
@@ -365,7 +365,36 @@ function VoicesPanel() {
           })}
         </ul>
       )}
+      {canSpeak() && <DeviceVoices voices={voices} />}
     </section>
+  )
+}
+
+/**
+ * Every English and Spanish voice the device gives Recallo, with its language code — to check on the iPhone
+ * that a newly installed voice (e.g. Argentine) is really visible to the app, and under which code.
+ */
+function DeviceVoices({ voices }: { voices: SpeechSynthesisVoice[] }) {
+  const relevant = voices
+    .filter((v) => /^(en|es)/.test(normalizeLang(v.lang)))
+    .sort((a, b) => normalizeLang(a.lang).localeCompare(normalizeLang(b.lang)) || a.name.localeCompare(b.name))
+  return (
+    <details className="device-voices">
+      <summary>
+        All English and Spanish voices on this {IS_PHONE ? 'iPhone' : 'Mac'} ({relevant.length})
+      </summary>
+      {relevant.length === 0 ? (
+        <p className="muted small">The system has not shared any voices with Recallo yet. Reopen the app and check again.</p>
+      ) : (
+        <ul className="device-voice-list">
+          {relevant.map((v) => (
+            <li key={v.voiceURI}>
+              <span>{v.name}</span> <span className="muted small">{v.lang}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </details>
   )
 }
 
@@ -374,7 +403,7 @@ const STUDY_SPACES: Array<{ id: SpaceId; name: string }> = [
   { id: 'es', name: 'Spanish' }
 ]
 
-/** Лимит новых слов в день для каждого языка (MVP-7, D48). */
+/** Daily new-word limit for each language (MVP-7, D48). */
 function StudyPanel() {
   return (
     <section className="panel">
@@ -454,7 +483,7 @@ const THEME_OPTIONS: Array<{ id: Theme; label: string }> = [
   { id: 'dark', label: 'Dark' }
 ]
 
-/** Тема оформления: как в macOS, всегда светлая или всегда тёмная (D49). */
+/** Appearance theme: follows macOS, always light or always dark (D49). */
 function AppearancePanel() {
   const [theme, setTheme] = useState<Theme | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -506,7 +535,7 @@ function AppearancePanel() {
 const formatWhen = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
-/** Ежедневная автокопия: переключатель, когда была последняя и где лежат копии (MVP-9, D51). */
+/** Daily automatic backup: the switch, when the last one was made and where backups are kept (MVP-9, D51). */
 function AutoBackupSection() {
   const [state, setState] = useState<AutoBackupState | null>(null)
   const [error, setError] = useState<string | null>(null)

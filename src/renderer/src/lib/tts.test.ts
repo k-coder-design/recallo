@@ -13,20 +13,27 @@ const system = [
   voice('Samantha', 'en-US')
 ]
 
-describe('выбор голоса', () => {
-  it('аргентинский вариант звучит улучшенным голосом Diego, испанский — Mónica', () => {
+describe('voice choice', () => {
+  it('the Argentine variant uses the enhanced Diego voice, the Spanish one Mónica', () => {
     expect(chooseVoice('es-AR', system)).toMatchObject({ voice: { name: 'Diego (Enhanced)' }, exact: true })
     expect(chooseVoice('es-ES', system).voice?.name).toBe('Mónica')
     expect(chooseVoice('en-US', system).voice?.name).toBe('Samantha')
   })
 
-  it('с аргентинским голосом озвучиваются оба испанских варианта', () => {
+  it('with an Argentine voice both Spanish variants are spoken', () => {
     expect(playableLangs(['es-AR', 'es-ES'], system)).toEqual(new Set(['es-AR', 'es-ES']))
   })
 
-  it('без аргентинского голоса — только испанский вариант, аргентинский берёт ближайший латиноамериканский', () => {
+  it('without an Argentine voice only the Spanish variant is spoken; the Argentine one takes the nearest Latin American voice', () => {
     const withoutAr = system.filter((v) => v.lang !== 'es-AR')
     expect(playableLangs(['es-AR', 'es-ES'], withoutAr)).toEqual(new Set(['es-ES']))
     expect(chooseVoice('es-AR', withoutAr)).toMatchObject({ voice: { name: 'Paulina' }, exact: false })
+  })
+
+  it('matches language codes written differently on iOS (es_AR, es-ar)', () => {
+    const ios = [voice('Mónica', 'es_ES'), voice('Diego', 'es_AR'), voice('Paulina', 'es-mx')]
+    expect(chooseVoice('es-AR', ios)).toMatchObject({ voice: { name: 'Diego' }, exact: true })
+    expect(chooseVoice('es-ES', ios)).toMatchObject({ voice: { name: 'Mónica' }, exact: true })
+    expect(playableLangs(['es-AR', 'es-ES'], ios)).toEqual(new Set(['es-AR', 'es-ES']))
   })
 })
