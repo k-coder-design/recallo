@@ -1,40 +1,40 @@
-# Recallo {{VERSION}} — начните отсюда
+# Recallo {{VERSION}} — start here
 
-Recallo — приложение для macOS (13 Ventura и новее), чтобы запоминать английские и испанские слова.
+Recallo is a macOS app (13 Ventura or newer) for remembering English and Spanish words.
 
-## Recallo ещё не установлен
+## Recallo is not installed yet
 
-1. Узнайте тип Mac: меню  → «Об этом Mac». Apple M1/M2/M3/M4… — откройте `Recallo-{{VERSION}}-arm64.dmg`, Intel — `Recallo-{{VERSION}}-x64.dmg`.
-2. Перетащите Recallo в «Программы».
-3. Первый запуск: правый клик по Recallo в «Программах» → «Открыть» → «Открыть» (приложение не нотаризовано Apple, поэтому macOS спрашивает один раз).
+1. Find your Mac type: Apple menu  → About This Mac. Apple M1/M2/M3/M4… — open `Recallo-{{VERSION}}-arm64.dmg`, Intel — `Recallo-{{VERSION}}-x64.dmg`.
+2. Drag Recallo into Applications.
+3. First launch: right-click Recallo in Applications → Open → Open (the app is not notarized by Apple, so macOS asks once).
 
-Подробно, со всеми командами и подключением Claude, — [DEPLOY.md](DEPLOY.md).
+The full guide, with all commands and connecting Claude, is [DEPLOY.md](DEPLOY.md).
 
-## Recallo уже установлен — обновление
+## Recallo is already installed — upgrade
 
-Закройте Recallo (⌘Q), откройте Terminal в этой папке и выполните:
+Close Recallo (⌘Q), open Terminal in this folder and run:
 
 ```bash
 bash upgrade-mac.sh
 ```
 
-Скрипт сохранит копию ваших слов, заменит приложение и проверит версию. Что нового и как откатиться — [UPGRADE.md](UPGRADE.md).
+The script saves a copy of your words, replaces the app and checks the version. What's new and how to roll back — [UPGRADE.md](UPGRADE.md).
 
-## Через ИИ-агента
+## Through an AI agent
 
-Откройте эту папку в Claude Code (или другом агенте) и вставьте нужный промпт из [AGENT_PROMPT.md](AGENT_PROMPT.md): «Новая установка» или «Обновление».
+Open this folder in Claude Code (or another agent) and paste the right prompt from [AGENT_PROMPT.md](AGENT_PROMPT.md): "New install" or "Upgrade".
 
-## Что в папке
+## What's in the folder
 
-| Файл | Зачем |
+| File | Purpose |
 | --- | --- |
-| `Recallo-{{VERSION}}-arm64.dmg` | Приложение для Mac на Apple Silicon (M1 и новее) |
-| `Recallo-{{VERSION}}-x64.dmg` | Приложение для Mac на Intel |
-| `upgrade-mac.sh` | Обновление установленного Recallo с копией базы |
-| `Recallo-{{VERSION}}-source.zip` | Исходный код — собрать приложение на месте (нужен Node.js 22+) |
-| `DEPLOY.md` | Новая установка, перенос слов с другого Mac, подключение Claude, голоса |
-| `UPGRADE.md` | Обновление со старых версий: что изменилось, шаги, проверка, откат |
-| `AGENT_PROMPT.md` | Готовые промпты для ИИ-агента |
-| `SHA256SUMS.txt` | Контрольные суммы: `shasum -a 256 -c SHA256SUMS.txt` |
+| `Recallo-{{VERSION}}-arm64.dmg` | The app for Macs with Apple Silicon (M1 and newer) |
+| `Recallo-{{VERSION}}-x64.dmg` | The app for Intel Macs |
+| `upgrade-mac.sh` | Upgrade an installed Recallo with a database copy |
+| `Recallo-{{VERSION}}-source.zip` | Source code — build the app on site (needs Node.js 22+) |
+| `DEPLOY.md` | New install, moving words from another Mac, connecting Claude, voices |
+| `UPGRADE.md` | Upgrading from older versions: what changed, steps, checks, rollback |
+| `AGENT_PROMPT.md` | Ready prompts for an AI agent |
+| `SHA256SUMS.txt` | Checksums: `shasum -a 256 -c SHA256SUMS.txt` |
 
-Слова и прогресс в комплект не входят: у каждого свои. Перенести свои слова на другой Mac — DEPLOY.md, раздел «Перенос слов и прогресса».
+Words and progress are not in the kit: everyone has their own. Moving your words to another Mac — DEPLOY.md, "Moving words and progress".

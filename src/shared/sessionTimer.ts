@@ -1,4 +1,4 @@
-/** Сессия по таймеру (D43): длительность выбирается перед стартом, по окончании — итог или продление. */
+/** Timed session (D43): the length is chosen before starting; at the end — a summary or an extension. */
 export const SESSION_LENGTHS = ['off', '5', '10', '15'] as const
 export type SessionLength = (typeof SESSION_LENGTHS)[number]
 export const EXTEND_MINUTES = [5, 10, 15] as const
@@ -6,9 +6,9 @@ export const EXTEND_MINUTES = [5, 10, 15] as const
 const MINUTE_MS = 60_000
 
 export interface SessionTimer {
-  /** Когда время сессии заканчивается (мс с эпохи). */
+  /** When the session time ends (ms since the epoch). */
   endsAt: number
-  /** Сколько минут сессии запланировано вместе с продлениями. */
+  /** How many session minutes are planned, including extensions. */
   plannedMinutes: number
 }
 
@@ -18,7 +18,7 @@ export function startTimer(length: SessionLength, now: number): SessionTimer | n
   return { endsAt: now + minutes * MINUTE_MS, plannedMinutes: minutes }
 }
 
-/** Продление отсчитывается от текущего момента: время, пока висел экран итога, не теряется и не дарится. */
+/** An extension counts from now: time spent on the summary screen is neither lost nor given away. */
 export function extendTimer(timer: SessionTimer | null, minutes: number, now: number): SessionTimer {
   return { endsAt: Math.max(now, timer?.endsAt ?? now) + minutes * MINUTE_MS, plannedMinutes: (timer?.plannedMinutes ?? 0) + minutes }
 }

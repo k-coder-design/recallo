@@ -139,7 +139,7 @@ function Tile({ label, value, note }: { label: string; value: string; note?: str
   )
 }
 
-/** Доли стадий: одна полоса «часть от целого», легенда с числами под ней. */
+/** Stage shares: one "part of the whole" bar, a legend with numbers below it. */
 function StageBar({ stats }: { stats: StatsOverview }) {
   const [hovered, setHovered] = useState<WordStage | null>(null)
   if (stats.total === 0) return <p className="muted">No cards in this language yet.</p>
@@ -192,7 +192,7 @@ function parseLocalDate(date: string): Date {
   return new Date(y ?? 0, (m ?? 1) - 1, d ?? 1)
 }
 
-/** Ответы по дням: столбцы с сегментами remembered / forgot / new words, подсказка на весь столбец. */
+/** Answers by day: bars with remembered / forgot / new words segments, a tooltip for the whole bar. */
 function ActivityChart({ days }: { days: DayActivity[] }) {
   const [hovered, setHovered] = useState<number | null>(null)
   const totals = days.map((d) => d.remembered + d.forgot + d.introduced)
@@ -233,7 +233,7 @@ function ActivityChart({ days }: { days: DayActivity[] }) {
               aria-label={`${DAY_LABEL.format(parseLocalDate(day.date))}: remembered ${day.remembered}, forgot ${day.forgot}, new words ${day.introduced}`}
             >
               <div className="stack" style={{ height: `${((totals[index] ?? 0) / max) * 100}%` }}>
-                {/* Снизу вверх: remembered, forgot, new words. */}
+                {/* Bottom to top: remembered, forgot, new words. */}
                 {[...SERIES].reverse().map((s) =>
                   day[s.key] > 0 ? (
                     <div key={s.key} className={`segment series-${s.key}`} style={{ flexGrow: day[s.key] }} />
@@ -244,7 +244,7 @@ function ActivityChart({ days }: { days: DayActivity[] }) {
           ))}
           {hoveredDay && hovered !== null && (
             <div
-              // Тултип сбоку от столбца, чтобы не закрывать его: слева на правой половине графика.
+              // The tooltip is beside the bar so it does not cover it: on the left on the chart's right half.
               className={`chart-tooltip ${hovered >= days.length / 2 ? 'to-left' : 'to-right'}`}
               style={{ left: `${((hovered + 0.5) / days.length) * 100}%` }}
               role="status"

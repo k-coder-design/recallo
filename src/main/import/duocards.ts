@@ -3,17 +3,17 @@ import { parseCsvRecords } from './csv'
 
 export interface DuoCardsRecord {
   input: CardCreateInput
-  /** Время создания карточки в DuoCards — чтобы сохранить исходный порядок. */
+  /** When the card was created in DuoCards — to keep the original order. */
   publishedAt: string | null
 }
 
-/** Нумерация примеров вида «1) …», «2) …» в поле hint. */
+/** Example numbering like "1) …", "2) …" in the hint field. */
 const NUMBERING = /^\s*\d+[).]\s*/
 
-/** Реплика диалога: «- ¿Cómo estás?». */
+/** A dialog line: "- ¿Cómo estás?". */
 const DIALOGUE_LINE = /^[-–—]\s*/
 
-/** Строки подсказки → примеры. Подряд идущие реплики диалога остаются одним примером. */
+/** Hint lines → examples. Consecutive dialog lines stay one example. */
 export function splitExamples(hint: string): string[] {
   const examples: string[] = []
   let previousWasDialogue = false
@@ -32,8 +32,8 @@ export function splitExamples(hint: string): string[] {
 }
 
 /**
- * Экспорт DuoCards (колонки front, back, hint, publishedAt) → данные для CardService.create.
- * front — изучаемое выражение, back — значение, hint — один или несколько примеров.
+ * A DuoCards export (columns front, back, hint, publishedAt) → data for CardService.create.
+ * front — the studied expression, back — the meaning, hint — one or more examples.
  */
 export function parseDuoCardsExport(csv: string, spaceId: SpaceId): DuoCardsRecord[] {
   return parseCsvRecords(csv)

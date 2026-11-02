@@ -1,110 +1,109 @@
-# Обновление Recallo до последней версии
+# Upgrading Recallo to the latest version
 
-Для тех, у кого Recallo уже установлен (версия 0.4.0 и новее). Комплект содержит одну версию; все изменения ниже приходят разом. Слова, наборы, прогресс и история сохраняются: они лежат отдельно от приложения, в `~/Library/Application Support/Recallo/`. Новая установка с нуля — в [DEPLOY.md](DEPLOY.md).
+For those who already have Recallo installed (version 0.4.0 or newer). The kit contains one version; all the changes below arrive at once. Words, sets, progress and history are kept: they live separately from the app, in `~/Library/Application Support/Recallo/`. A fresh install from scratch is in [DEPLOY.md](DEPLOY.md).
 
-Какая версия стоит сейчас:
+Which version is installed now:
 
 ```bash
 defaults read /Applications/Recallo.app/Contents/Info.plist CFBundleShortVersionString
 ```
 
-## Что изменилось
+## What changed
 
 ### 0.11.2
 
-- **Подсказки** у кнопок-значков в Study (↶ отмена, ✎ правка, 🗑 удаление) и у счётчиков ✨ · ✓ · ✗ — появляются сразу при наведении.
+- **Tooltips** on icon buttons in Study (↶ undo, ✎ edit, 🗑 delete) and on the ✨ · ✓ · ✗ counters — they appear right away on hover.
 
 ### 0.11.1
 
-- **Шапка сессии Study** — одна компактная строка: имя набора (длинное обрезается), счётчики ✨ · ✓ · ✗, таймер, небольшие кнопки ↶ и End session. Надписи больше не переносятся.
+- **The Study session bar** is one compact line: the set name (a long one is cut), the ✨ · ✓ · ✗ counters, the timer, small ↶ and End session buttons. Labels no longer wrap.
 
 ### 0.11.0
 
-- **Лимит новых слов посреди сессии**: вместо ожидания «Next review in…» Study предлагает выбор — **Practice current words** (повторять начатые слова без ожидания до конца сессии) или **Learn 5 new words**.
-- **Новые слова вперемешку**: после нового слова идёт уже знакомое, а при учёбе набора — и выученные слова этого набора. Новые слова больше не идут длинной чередой одно за другим.
+- **New-word limit mid-session**: instead of waiting with "Next review in…", Study offers a choice — **Practice current words** (practice the started words without waiting until the session ends) or **Learn 5 new words**.
+- **New words mixed in**: a new word is followed by an already known one, and when studying a set also by learned words of that set. New words no longer come in a long run one after another.
 
 ### 0.10.2
 
-- Кнопки Edit set, Delete set, Import, Export и + New card в Cards больше не сжимаются при длинном имени набора — длинное имя переносится на следующую строку.
+- The Edit set, Delete set, Import, Export and + New card buttons in Cards no longer shrink with a long set name — the long name wraps to the next line.
 
 ### 0.10.1
 
-- Эмодзи из нескольких знаков (например «👨‍👩») больше не налезает на слово в списке Cards и не вылезает из круга на карточке.
+- An emoji made of several characters (e.g. "👨‍👩") no longer overlaps the word in the Cards list and no longer spills out of the circle on the card.
 
 ### 0.10.0
 
-- **Поиск в Cards** находит по части слова и по словам фразы в любом порядке («hold at bay» → «hold/keep sth (sb) at bay»), ищет и в примерах с переводами, прощает одну опечатку в словах от 5 букв и ставит лучшие совпадения первыми. Тот же поиск — у агентов через API и MCP.
-- **Фильтр по статусу** в Cards: All / New / Introduced / Learning / Review / Relearning, с числом карточек.
-- **Удаление в Study**: корзина в углу карточки, с подтверждением.
+- **Search in Cards** finds by part of a word and by the words of a phrase in any order ("hold at bay" → "hold/keep sth (sb) at bay"), also searches examples with translations, forgives one typo in words of 5+ letters and puts the best matches first. Agents get the same search through the API and MCP.
+- **Status filter** in Cards: All / New / Introduced / Learning / Review / Relearning, with card counts.
+- **Delete in Study**: a trash can in the card's corner, with confirmation.
 
-### 0.9.0 и 0.9.1
+### 0.9.0 and 0.9.1
 
+- **First meeting with a new word**: the card shows everything at once — word, pronunciation, meaning and examples — with a "✨ New word · first meeting" label and a single **Continue** button (Space, Enter, → or a swipe in any direction). The "Not yet / Got it" buttons are gone. You will be asked to recall the word in about a minute, as before.
+- **Animations**: the card flips on "Show answer". After a new word the card leaves sideways, the next new word comes in from the right, and a recall card rises from below. If Reduce motion is on in macOS, there are no animations.
+- **Faster**: fewer database queries per card, swiping and the timer do not re-render the whole card, a grade is written without needless waiting for the disk.
 
-- **Первая встреча с новым словом**: карточка сразу показывает всё — слово, произношение, значение и примеры — с ярлыком «✨ New word · first meeting» и одной кнопкой **Continue** (Space, Enter, → или свайп в любую сторону). Кнопок «Not yet / Got it» больше нет. Вспомнить слово предложат примерно через минуту, как и раньше.
-- **Анимации**: при «Show answer» карточка переворачивается. После нового слова карточка уходит в сторону, следующее новое слово появляется справа, а карточка вспоминания поднимается снизу. Если в macOS включено «Уменьшить движение», анимаций нет.
-- **Быстрее**: меньше запросов к базе на каждую карточку, свайп и таймер не перерисовывают карточку целиком, оценка записывается без лишнего ожидания диска.
+Words previously postponed with "Not yet" simply show up as a whole new card. The daily new-word limit, statistics, automatic backups, and the API and MCP for agents work as before: there is no need to set up the Claude connection again.
 
-Слова, которые раньше отложили кнопкой «Not yet», просто покажутся новой карточкой целиком. Дневной лимит новых слов, статистика, автокопии, API и MCP для агентов работают как прежде: подключение Claude настраивать заново не нужно.
+## What happens to the data
 
-## Что происходит с данными
+The database structure in 0.9.x–0.11.x is the same as in 0.7.0–0.8.x. Older databases are upgraded by Recallo itself on first launch:
 
-Структура базы в 0.9.x–0.11.x та же, что в 0.7.0–0.8.x. Более старые базы Recallo обновляет сам при первом запуске:
-
-| Установлена сейчас | Что сделает новая версия при первом запуске |
+| Installed now | What the new version does on first launch |
 | --- | --- |
-| 0.7.0 – 0.10.x | Ничего — база уже подходит |
-| 0.5.1 – 0.6.1 | Добавит поля режима ввода ответа (миграция 8) |
-| 0.4.0 – 0.5.0 | Добавит второе произношение для испанского и поля режима ввода (миграции 7–8); транскрипции заполнятся сами |
+| 0.7.0 – 0.10.x | Nothing — the database already fits |
+| 0.5.1 – 0.6.1 | Adds the typed-answer fields (migration 8) |
+| 0.4.0 – 0.5.0 | Adds the second Spanish pronunciation and the typed-answer fields (migrations 7–8); transcriptions fill in by themselves |
 
-Обновление базы необратимо для версий старше 0.7.0, поэтому перед установкой обязательно делается копия (скрипт делает её сам).
+The database upgrade is irreversible for versions older than 0.7.0, so a copy is always made before installing (the script makes it by itself).
 
-## Обновление скриптом (рекомендуется)
+## Upgrading with the script (recommended)
 
-1. Закройте Recallo (⌘Q). Скрипт открытое приложение не закрывает и откажется работать.
-2. В Terminal перейдите в папку комплекта и запустите:
+1. Close Recallo (⌘Q). The script does not close an open app and refuses to run.
+2. In Terminal go to the kit folder and run:
 
 ```bash
 bash upgrade-mac.sh
 ```
 
-Скрипт:
-- выбирает DMG под ваш Mac (Apple Silicon или Intel) и проверяет его контрольную сумму;
-- сравнивает версии и ничего не делает, если стоит та же или более новая (`--force` — переустановить);
-- сохраняет копию базы в `~/Library/Application Support/Recallo/recallo.before-<версия>.sqlite` и проверяет её;
-- заменяет `/Applications/Recallo.app` и проверяет, что установилась нужная версия.
+The script:
+- picks the DMG for your Mac (Apple Silicon or Intel) and checks its checksum;
+- compares versions and does nothing if the same or a newer one is installed (`--force` — reinstall);
+- saves a database copy to `~/Library/Application Support/Recallo/recallo.before-<version>.sqlite` and checks it;
+- replaces `/Applications/Recallo.app` and checks that the right version was installed.
 
-3. Запустите Recallo: `open -a Recallo`. Если macOS не даёт открыть приложение — правый клик по Recallo в «Программах» → «Открыть» (подробнее — DEPLOY.md, «Вариант A»).
+3. Launch Recallo: `open -a Recallo`. If macOS will not open the app — right-click Recallo in Applications → Open (details in DEPLOY.md, "Option A").
 
-## Обновление вручную
+## Upgrading by hand
 
-1. Закройте Recallo (⌘Q).
-2. Сделайте копию базы (вместо `0.11.0` подставьте устанавливаемую версию):
+1. Close Recallo (⌘Q).
+2. Make a database copy (replace `0.11.0` with the version being installed):
 
 ```bash
 cd ~/Library/Application\ Support/Recallo
 sqlite3 recallo.sqlite ".backup recallo.before-0.11.0.sqlite"
 ```
 
-Или через интерфейс: Settings → Backup → «Create backup…».
+Or through the interface: Settings → Backup → "Create backup…".
 
-3. Откройте DMG под свой Mac (`uname -m`: `arm64` → `…-arm64.dmg`, `x86_64` → `…-x64.dmg`) и перетащите Recallo в «Программы» с заменой.
-4. Запустите Recallo.
+3. Open the DMG for your Mac (`uname -m`: `arm64` → `…-arm64.dmg`, `x86_64` → `…-x64.dmg`) and drag Recallo into Applications, replacing the old one.
+4. Launch Recallo.
 
-Из исходников: распакуйте `Recallo-<версия>-source.zip` и выполните `bash scripts/setup-mac.sh` — он заменит приложение в «Программах», данные не трогает. Копию базы сделайте заранее, как в шаге 2.
+From source: unpack `Recallo-<version>-source.zip` and run `bash scripts/setup-mac.sh` — it replaces the app in Applications and does not touch the data. Make the database copy beforehand, as in step 2.
 
-## Проверка после обновления
+## Checking after the upgrade
 
 ```bash
 defaults read /Applications/Recallo.app/Contents/Info.plist CFBundleShortVersionString
 sqlite3 ~/Library/Application\ Support/Recallo/recallo.sqlite "PRAGMA user_version; SELECT COUNT(*) FROM cards;"
 ```
 
-Первая команда печатает новую версию, вторая — `8` и число карточек (столько же, сколько было). В приложении: Cards — под поиском кнопки фильтра по статусу; Study → Paddle out — новое слово показывается целиком с кнопкой Continue.
+The first command prints the new version, the second — `8` and the number of cards (the same as before). In the app: Cards has status filter buttons under the search; Study → Paddle out shows a new word in full with a Continue button.
 
-## Если что-то пошло не так — откат
+## If something went wrong — rollback
 
-1. Закройте Recallo (⌘Q).
-2. Верните базу из копии:
+1. Close Recallo (⌘Q).
+2. Restore the database from the copy:
 
 ```bash
 cd ~/Library/Application\ Support/Recallo
@@ -112,8 +111,8 @@ rm -f recallo.sqlite-wal recallo.sqlite-shm
 cp recallo.before-0.11.0.sqlite recallo.sqlite
 ```
 
-3. Установите прежнюю версию из её DMG, если она сохранилась. Версии 0.7.0–0.9.x откроют базу и без отката; более старые — только с базой из копии.
+3. Install the previous version from its DMG, if you still have it. Versions 0.7.0–0.9.x open the database even without a rollback; older ones only with the database from the copy.
 
-## Для ИИ-агента
+## For an AI agent
 
-Откройте папку комплекта в агенте (Claude Code и др.) и вставьте текст из раздела «Обновление» в [AGENT_PROMPT.md](AGENT_PROMPT.md).
+Open the kit folder in the agent (Claude Code and others) and paste the text from the "Upgrade" section of [AGENT_PROMPT.md](AGENT_PROMPT.md).

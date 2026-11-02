@@ -11,7 +11,7 @@ import { SettingsService } from './domain/settings'
 import { FileTransfer } from './fileTransfer'
 import { AutoBackup } from './autoBackup'
 
-// Отдельная папка данных для разработки и проверок, чтобы не трогать рабочую базу.
+// A separate data folder for development and checks, so the real database is not touched.
 const userDataOverride = process.env['RECALLO_USER_DATA']
 if (userDataOverride) app.setPath('userData', userDataOverride)
 
@@ -36,7 +36,7 @@ function createWindow(): void {
 
   window.once('ready-to-show', () => window.show())
 
-  // Внешние ссылки открываются в браузере, навигация внутри окна запрещена.
+  // External links open in the browser; navigation inside the window is blocked.
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) void shell.openExternal(url)
     return { action: 'deny' }
@@ -54,17 +54,17 @@ app.whenReady().then(async () => {
   services.cards.fillMissingTranscriptions()
   services.cards.fillMissingEmojis()
 
-  // API для агентов (MVP-3): работает, только если включён в Settings; MCP-сервер запускается
-  // тем же бинарником Recallo в режиме Node и берёт адрес и токен из файла подключения.
+  // Agent API (MVP-3): runs only if enabled in Settings; the MCP server is started
+  // by the same Recallo binary in Node mode and reads the address and token from the connection file.
   const settings = new SettingsService(db)
-  // Тема применяется ко всему приложению: prefers-color-scheme в интерфейсе и системные диалоги (D49).
+  // The theme applies to the whole app: prefers-color-scheme in the interface and system dialogs (D49).
   nativeTheme.themeSource = settings.theme()
   const server = new LocalApiServer(createRoutes(services, { version: app.getVersion() }), db, () => settings.agentApi().token)
   agentApi = new AgentApiController(settings, server, join(app.getPath('userData'), CONNECTION_FILE), {
     command: process.execPath,
     script: join(app.getAppPath(), 'out/mcp/index.cjs')
   })
-  // Ежедневная автокопия (MVP-9, D51): при запуске и раз в час — так копия появится и после полуночи.
+  // Daily automatic backup (MVP-9, D51): at start and once an hour — so a backup also appears after midnight.
   const autoBackup = new AutoBackup(services.transfer, settings, join(app.getPath('userData'), 'backups'), () => new Date())
   registerIpc(
     createHandlers(
@@ -101,7 +101,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('will-quit', () => {
-  // Сервер и файл подключения убираем вместе с приложением: агенты получат понятную ошибку.
+  // The server and connection file go away together with the app: agents get a clear error.
   void agentApi?.shutdown()
   db?.close()
   db = null

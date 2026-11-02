@@ -11,18 +11,18 @@ function codeOf(fn: () => unknown): string | undefined {
   return undefined
 }
 
-describe('StudyService: знакомство с новыми карточками', () => {
-  it('сразу показывает всё: слово, значение и примеры (D53)', () => {
+describe('StudyService: meeting new cards', () => {
+  it('shows everything at once: word, meaning and examples (D53)', () => {
     const t = setup()
-    t.addCard({ term: 'loophole', meaning: 'лазейка', examples: [{ text: 'They found a loophole.' }] })
+    t.addCard({ term: 'loophole', meaning: 'a gap in the rules', examples: [{ text: 'They found a loophole.' }] })
     const shown = expectIntro(t.study.next('en'))
-    expect(shown.back).toMatchObject({ term: 'loophole', transcription: 'ˈlupˌhoʊl', ttsLang: 'en-US', meaning: 'лазейка' })
+    expect(shown.back).toMatchObject({ term: 'loophole', transcription: 'ˈlupˌhoʊl', ttsLang: 'en-US', meaning: 'a gap in the rules' })
     expect(shown.back.examples[0]?.segments.find((s) => s.masked)?.text).toBe('loophole')
-    // Раскрывать нечего: знакомство можно сразу завершить.
+    // Nothing to reveal: the meeting can be finished right away.
     expect(t.study.grade(shown.presentationId, 'remembered').mode).toBe('intro')
   })
 
-  it('не меняет FSRS, а открывает вспоминание примерно через минуту', () => {
+  it('does not change FSRS and opens recall in about a minute', () => {
     const t = setup()
     const card = t.addCard()
     const { result } = t.answer('remembered')
@@ -36,10 +36,10 @@ describe('StudyService: знакомство с новыми карточкам�
     t.advance(MINUTE)
     expect(t.study.counts('en')).toMatchObject({ due: 1, new: 0 })
     const recall = expectRecall(t.study.next('en'))
-    expect(recall.front.meaning).toBe('бегать')
+    expect(recall.front.meaning).toBe('to run')
   })
 
-  it('«Not yet» повторяет знакомство позже, между — другие карточки', () => {
+  it('"Not yet" repeats the meeting later, with other cards in between', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     const b = t.addCard({ term: 'b' })
@@ -49,12 +49,12 @@ describe('StudyService: знакомство с новыми карточкам�
     expect(expectIntro(t.study.next('en', { avoidCardId: a.id })).cardId).toBe(b.id)
     t.answer('remembered', { avoidCardId: a.id })
     t.advance(MINUTE)
-    // Обе снова готовы: сначала вспоминание знакомой b, затем повторное знакомство с a.
+    // Both are ready again: first the recall of the met card b, then the repeated meeting with a.
     expect(expectRecall(t.study.next('en')).cardId).toBe(b.id)
     expect(expectIntro(t.study.next('en', { avoidCardId: b.id })).cardId).toBe(a.id)
   })
 
-  it('пропускает знакомство для карточек, которые уже вспоминали', () => {
+  it('skips the meeting for cards that were already recalled', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -63,7 +63,7 @@ describe('StudyService: знакомство с новыми карточкам�
     expect(expectCard(t.study.next('en')).mode).toBe('recall')
   })
 
-  it('сброс прогресса снова отправляет карточку на знакомство', () => {
+  it('a progress reset sends the card back to a meeting', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -73,7 +73,7 @@ describe('StudyService: знакомство с новыми карточкам�
     expectIntro(t.study.next('en'))
   })
 
-  it('не применяет повторно отправленный результат знакомства', () => {
+  it('does not apply a resubmitted meeting result', () => {
     const t = setup()
     t.addCard()
     const shown = expectIntro(t.study.next('en'))
@@ -85,17 +85,17 @@ describe('StudyService: знакомство с новыми карточкам�
   })
 })
 
-describe('StudyService: вспоминание', () => {
-  it('не показывает карточки другого языка', () => {
+describe('StudyService: recall', () => {
+  it('does not show cards of another language', () => {
     const t = setup()
     t.addCard({ spaceId: 'es', term: 'correr' })
     expect(t.study.next('en').kind).toBe('done')
     expect(expectIntro(t.study.next('es')).back.term).toBe('correr')
   })
 
-  it('скрывает изучаемое выражение на лицевой стороне и раскрывает на обратной', () => {
+  it('hides the studied expression on the front and reveals it on the back', () => {
     const t = setup()
-    t.addCard({ term: 'am used to', meaning: 'быть привыкшим', examples: [{ text: 'I am used to working remotely.' }] })
+    t.addCard({ term: 'am used to', meaning: 'to be accustomed to', examples: [{ text: 'I am used to working remotely.' }] })
     t.introduceAll()
     const shown = expectRecall(t.study.next('en'))
     expect(JSON.stringify(shown.front)).not.toContain('used')
@@ -110,7 +110,7 @@ describe('StudyService: вспоминание', () => {
     expect(back.examples[0]?.segments.map((s) => s.text).join('')).toBe('I am used to working remotely.')
   })
 
-  it('не принимает оценку до раскрытия ответа', () => {
+  it('does not accept a grade before the answer is revealed', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -119,7 +119,7 @@ describe('StudyService: вспоминание', () => {
     expect(t.cards.list('en')[0]?.progress.reps).toBe(0)
   })
 
-  it('не применяет повторно отправленную оценку', () => {
+  it('does not apply a resubmitted grade', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -134,7 +134,7 @@ describe('StudyService: вспоминание', () => {
     expect(t.db.prepare("SELECT COUNT(*) FROM review_log WHERE mode = 'recall'").pluck().get()).toBe(1)
   })
 
-  it('после ошибки возвращает карточку примерно через минуту', () => {
+  it('brings the card back in about a minute after a mistake', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -145,7 +145,7 @@ describe('StudyService: вспоминание', () => {
     expectRecall(t.study.next('en'))
   })
 
-  it('без других карточек позволяет показать раньше срока, не блокируя', () => {
+  it('without other cards allows showing early instead of blocking', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -154,7 +154,7 @@ describe('StudyService: вспоминание', () => {
     expectRecall(t.study.next('en', { allowEarly: true }))
   })
 
-  it('раньше срока чередует карточки, а не повторяет одну подряд', () => {
+  it('alternates cards when showing early instead of repeating one', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     const b = t.addCard({ term: 'b' })
@@ -166,7 +166,7 @@ describe('StudyService: вспоминание', () => {
     expect(expectRecall(t.study.next('en', { avoidCardId: a.id, allowEarly: true })).cardId).toBe(b.id)
   })
 
-  it('показывает другие карточки между повторами одной и той же', () => {
+  it('shows other cards between repeats of the same one', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     const b = t.addCard({ term: 'b' })
@@ -177,7 +177,7 @@ describe('StudyService: вспоминание', () => {
     expect(expectCard(t.study.next('en', { avoidCardId: a.id })).cardId).toBe(b.id)
   })
 
-  it('ставит наступившие повторения раньше знакомства с новыми', () => {
+  it('puts due reviews before meeting new cards', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     t.introduceAll()
@@ -187,7 +187,7 @@ describe('StudyService: вспоминание', () => {
     expect(expectRecall(t.study.next('en')).cardId).toBe(a.id)
   })
 
-  it('не исключает карточку после многих ошибок', () => {
+  it('does not drop a card after many mistakes', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -199,7 +199,7 @@ describe('StudyService: вспоминание', () => {
     }
   })
 
-  it('выводит карточку на долгосрочное повторение после успешных ответов', () => {
+  it('moves a card to long-term review after successful answers', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()
@@ -211,7 +211,7 @@ describe('StudyService: вспоминание', () => {
     expect(t.study.next('en').kind).toBe('done')
   })
 
-  it('считает повторения и новые карточки', () => {
+  it('counts reviews and new cards', () => {
     const t = setup()
     t.addCard({ term: 'a' })
     t.addCard({ term: 'b' })
@@ -224,36 +224,36 @@ describe('StudyService: вспоминание', () => {
     expect(t.study.counts('es')).toMatchObject({ due: 0, new: 1 })
   })
 
-  it('сообщает об устаревшем показе', () => {
+  it('reports an expired presentation', () => {
     const t = setup()
     expect(codeOf(() => t.study.reveal('missing'))).toBe('PRESENTATION_EXPIRED')
   })
 })
 
-describe('StudyService: новые слова вперемешку с другими (D56)', () => {
-  /** Знакомство с показанной карточкой; следующая запрашивается так же, как в сессии Study. */
+describe('StudyService: new words mixed with others (D56)', () => {
+  /** Meet the shown card; the next one is requested the same way as in a Study session. */
   function meet(t: ReturnType<typeof setup>, next: ReturnType<typeof expectIntro>) {
     t.study.grade(next.presentationId, 'remembered')
     return next.cardId
   }
 
-  it('после знакомства показывает уже знакомое слово раньше срока, затем следующее новое', () => {
+  it('after a meeting shows an already met word early, then the next new one', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     const b = t.addCard({ term: 'b' })
     const c = t.addCard({ term: 'c' })
     meet(t, expectIntro(t.study.next('en')))
-    // Других знакомых слов ещё нет — второе новое всё-таки идёт следом.
+    // No other met words yet — the second new one still comes next.
     const second = expectIntro(t.study.next('en', { avoidCardId: a.id, afterNew: true }))
     expect(second.cardId).toBe(b.id)
     meet(t, second)
-    // Теперь между новыми — вспоминание a, хотя минута ещё не прошла.
+    // Now a recall of a comes between new words, even though the minute has not passed.
     expect(expectRecall(t.study.next('en', { avoidCardId: b.id, afterNew: true })).cardId).toBe(a.id)
-    // После вспоминания снова новое слово.
+    // After the recall — a new word again.
     expect(expectIntro(t.study.next('en', { avoidCardId: a.id })).cardId).toBe(c.id)
   })
 
-  it('в наборе перемежает новые слова выученными словами этого набора', () => {
+  it('in a set mixes new words with learned words of that set', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie' })
     const known = t.addCard({ term: 'known', setId: set.id })
@@ -267,13 +267,13 @@ describe('StudyService: новые слова вперемешку с други
     const fresher = t.addCard({ term: 'fresher', setId: set.id })
     const scope = { kind: 'set', setId: set.id } as const
     expect(meet(t, expectIntro(t.study.next('en', { scope })))).toBe(fresh.id)
-    // Слово набора, до повторения которого ещё сутки, — вместо второго нового подряд.
+    // A set word due in a day — instead of a second new word in a row.
     expect(expectRecall(t.study.next('en', { scope, avoidCardId: fresh.id, afterNew: true })).cardId).toBe(known.id)
-    // Во всех карточках языка выученные слова раньше срока не показываются.
+    // Across all cards of the language learned words are not shown early.
     expect(expectIntro(t.study.next('en', { avoidCardId: fresh.id, afterNew: true })).cardId).toBe(fresher.id)
   })
 
-  it('без afterNew порядок прежний: новые подряд', () => {
+  it('without afterNew the order is unchanged: new words in a row', () => {
     const t = setup()
     const a = t.addCard({ term: 'a' })
     const b = t.addCard({ term: 'b' })

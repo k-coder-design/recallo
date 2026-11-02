@@ -37,7 +37,7 @@ import type {
   UndoResult
 } from './types'
 
-/** Контракт между интерфейсом и main-процессом. Тот же доменный слой будет обслуживать REST API (MVP-3). */
+/** The contract between the interface and the main process. The same domain layer also serves the REST API (MVP-3). */
 export interface ApiContract {
   'spaces.list': () => Space[]
   'cards.list': (spaceId: SpaceId, query?: CardQuery) => Card[]
@@ -99,7 +99,7 @@ export interface BridgeApi {
 
 export const API_CHANNEL = 'recallo:api'
 
-// Record гарантирует, что список методов совпадает с контрактом.
+// Record guarantees that the method list matches the contract.
 const METHODS: Record<ApiMethod, true> = {
   'spaces.list': true,
   'cards.list': true,

@@ -5,18 +5,18 @@ import type { AgentApiState } from '../shared/types'
 import type { LocalApiServer } from './api/http'
 import type { SettingsService } from './domain/settings'
 
-/** Как запускать MCP-сервер: бинарник Recallo в режиме Node и путь к скрипту сервера. */
+/** How to start the MCP server: the Recallo binary in Node mode and the path to the server script. */
 export interface McpLaunch {
   command: string
   script: string
 }
 
-/** Имя служебного файла подключения: из него MCP-сервер берёт адрес API и токен. */
+/** Name of the connection file: the MCP server reads the API address and token from it. */
 export const CONNECTION_FILE = 'agent-api.json'
 
 /**
- * Управляет API для агентов: запускает и останавливает сервер по настройкам, пишет файл
- * подключения (права только для владельца) и готовит фрагменты конфигурации для Claude.
+ * Manages the agent API: starts and stops the server per the settings, writes the connection
+ * file (owner-only permissions) and prepares configuration snippets for Claude.
  */
 export class AgentApiController {
   private status: AgentApiState['status'] = 'stopped'
@@ -30,7 +30,7 @@ export class AgentApiController {
     private readonly mcp: McpLaunch
   ) {}
 
-  /** Приводит сервер в соответствие с настройками (при запуске приложения и после изменений). */
+  /** Brings the server in line with the settings (at app start and after changes). */
   async sync(): Promise<AgentApiState> {
     const { enabled, port, token } = this.settings.agentApi()
     await this.server.stop()
@@ -67,7 +67,7 @@ export class AgentApiController {
     return this.sync()
   }
 
-  /** При выходе: файл подключения удаляется сразу (синхронно), сервер останавливается следом. */
+  /** On quit: the connection file is deleted right away (synchronously), then the server stops. */
   async shutdown(): Promise<void> {
     this.removeConnectionFile()
     await this.server.stop()

@@ -1,9 +1,9 @@
 import type { Db } from './database'
 
 /**
- * Миграции схемы, номер текущей хранится в PRAGMA user_version.
- * Содержимое карточек, прогресс памяти и история повторений лежат в разных таблицах (GEN-06).
- * Добавлять только новые элементы в конец массива; применённые миграции не менять.
+ * Schema migrations; the current number is stored in PRAGMA user_version.
+ * Card content, memory progress and review history live in separate tables (GEN-06).
+ * Only append new items to the end of the array; never change applied migrations.
  */
 const MIGRATIONS: string[] = [
   `
@@ -57,30 +57,30 @@ const MIGRATIONS: string[] = [
   );
   CREATE INDEX review_log_card ON review_log(card_id, reviewed_at);
   `,
-  // Режим знакомства (D21): новая карточка сначала показывается словом, затем значением.
-  // introduced_at — когда знакомство пройдено; intro_due — когда новую карточку можно показать снова
-  // (повтор знакомства или первое вспоминание). FSRS-состояние знакомство не меняет.
+  // Meeting mode (D21): a new card is first shown as a word, then as a meaning.
+  // introduced_at — when the meeting happened; intro_due — when the new card can be shown again
+  // (a repeated meeting or the first recall). A meeting does not change the FSRS state.
   `
   ALTER TABLE card_progress ADD COLUMN introduced_at TEXT;
   ALTER TABLE card_progress ADD COLUMN intro_due TEXT;
   ALTER TABLE review_log ADD COLUMN mode TEXT NOT NULL DEFAULT 'recall' CHECK (mode IN ('intro', 'recall'));
   `,
-  // Транскрипция (D22): IPA без косых черт; NULL — ещё не построена, дозаполняется при запуске.
-  // Испанский — аргентинский вариант, озвучка тоже.
+  // Transcription (D22): IPA without slashes; NULL — not built yet, filled in at startup.
+  // Spanish — the Argentine variant, speech too.
   `
   ALTER TABLE cards ADD COLUMN transcription TEXT;
   UPDATE spaces SET tts_lang = 'es-AR' WHERE id = 'es';
   `,
-  // Эмодзи-ассоциация (D27): emoji NULL — не подобрано; '' — пользователь выбрал «без эмодзи».
-  // emoji_auto = 1 — подобрано автоматически (его можно заменить точнее, например ИИ в MVP-6).
+  // Emoji association (D27): emoji NULL — not picked; '' — the user chose "no emoji".
+  // emoji_auto = 1 — picked automatically (it can be replaced by a better one, e.g. by AI in MVP-6).
   `
   ALTER TABLE cards ADD COLUMN emoji TEXT;
   ALTER TABLE cards ADD COLUMN emoji_auto INTEGER NOT NULL DEFAULT 1;
   `,
-  // MVP-2: наборы (SET-01…07) — карточка в одном наборе или «без набора» (set_id NULL);
-  // удаление набора по умолчанию оставляет карточки без набора (ON DELETE SET NULL).
-  // Отмена оценки: undone_at помечает отменённую запись истории; intro_before хранит
-  // состояние знакомства до записи, чтобы его можно было вернуть.
+  // MVP-2: sets (SET-01…07) — a card is in one set or in "no set" (set_id NULL);
+  // deleting a set keeps its cards without a set by default (ON DELETE SET NULL).
+  // Undoing a grade: undone_at marks an undone history record; intro_before stores
+  // the meeting state before the record so it can be restored.
   `
   CREATE TABLE sets (
     id TEXT PRIMARY KEY,
@@ -97,8 +97,8 @@ const MIGRATIONS: string[] = [
   ALTER TABLE review_log ADD COLUMN undone_at TEXT;
   ALTER TABLE review_log ADD COLUMN intro_before TEXT;
   `,
-  // MVP-3: настройки приложения (ключ — значение) и ключи идемпотентности REST API (API-14):
-  // повтор запроса с тем же ключом и телом возвращает сохранённый ответ, а не выполняется снова.
+  // MVP-3: app settings (key — value) and REST API idempotency keys (API-14):
+  // repeating a request with the same key and body returns the saved response instead of running again.
   `
   CREATE TABLE settings (
     key TEXT PRIMARY KEY,
@@ -112,12 +112,12 @@ const MIGRATIONS: string[] = [
     created_at TEXT NOT NULL
   );
   `,
-  // Второй вариант произношения (D44): для испанского — кастильская транскрипция рядом с аргентинской.
+  // Second pronunciation (D44): for Spanish — a Castilian transcription next to the Argentine one.
   `
   ALTER TABLE cards ADD COLUMN transcription_alt TEXT;
   `,
-  // MVP-8: режим ввода ответа (D50) — что ввёл пользователь, что предложило приложение
-  // и исправил ли пользователь оценку. В FSRS идёт только итоговая оценка (grade).
+  // MVP-8: typed answer mode (D50) — what the user typed, what the app suggested
+  // and whether the user changed the grade. Only the final grade (grade) goes to FSRS.
   `
   ALTER TABLE review_log ADD COLUMN typed_answer TEXT;
   ALTER TABLE review_log ADD COLUMN auto_verdict TEXT;

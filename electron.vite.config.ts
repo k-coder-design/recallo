@@ -4,7 +4,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   main: {
     build: {
-      // Словарь произношений и данные эмодзи встраиваем в сборку main, а не подключаем из node_modules.
+      // Bundle the pronunciation dictionary and emoji data into main instead of loading them from node_modules.
       externalizeDeps: { exclude: ['cmu-pronouncing-dictionary', 'emojibase-data'] }
     }
   },

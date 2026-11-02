@@ -31,13 +31,13 @@ afterEach(async () => {
 })
 
 describe('AgentApiController', () => {
-  it('по умолчанию выключен и не создаёт файл подключения', async () => {
+  it('is off by default and does not create the connection file', async () => {
     const state = await controller.sync()
     expect(state).toMatchObject({ enabled: false, status: 'stopped', url: null })
     expect(existsSync(join(dir, 'agent-api.json'))).toBe(false)
   })
 
-  it('при включении запускает API и пишет файл подключения только для владельца', async () => {
+  it('when enabled starts the API and writes the connection file for the owner only', async () => {
     const state = await controller.update({ enabled: true, port: 47999 })
     expect(state.status).toBe('running')
     const file = join(dir, 'agent-api.json')
@@ -49,7 +49,7 @@ describe('AgentApiController', () => {
     expect(existsSync(file)).toBe(false)
   })
 
-  it('сообщает о занятом порте', async () => {
+  it('reports a busy port', async () => {
     const { createServer } = await import('node:net')
     const blocker = createServer().listen(47998, '127.0.0.1')
     await new Promise((r) => blocker.once('listening', r))
@@ -62,7 +62,7 @@ describe('AgentApiController', () => {
     }
   })
 
-  it('даёт рабочую команду для Claude Code: имя сервера до -e, команда после --', () => {
+  it('gives a working Claude Code command: the server name before -e, the command after --', () => {
     expect(controller.state().connection.claudeCode).toBe(
       'claude mcp add --scope user recallo -e ELECTRON_RUN_AS_NODE=1 -- "/Applications/Recallo.app/Contents/MacOS/Recallo" "/Applications/Recallo.app/Contents/Resources/app.asar/out/mcp/index.cjs"'
     )

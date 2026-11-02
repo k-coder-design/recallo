@@ -1,26 +1,26 @@
 import type { Swell } from '../../../shared/types'
 
-// Сцена шире любой карточки: она прижата к правому краю и обрезается слева, текст остаётся на «небе».
+// The scene is wider than any card: it is pinned to the right edge and cropped on the left; the text stays in the "sky".
 const WIDTH = 960
 const HEIGHT = 220
 const MIN_SWELL = 0.3
 const MAX_SWELL = 4
 
-/** Гребень волны: синус с небольшим перекосом, чтобы вершины были круче, как у прибойной волны. */
+/** A wave crest: a sine with a slight skew so the peaks are steeper, like a breaking wave. */
 function waveY(x: number, base: number, amp: number, length: number, phase: number): number {
   const angle = (x / length + phase) * Math.PI * 2
   return base - amp * (Math.sin(angle) + 0.28 * Math.sin(angle * 2 - 0.6))
 }
 
 function wavePath(base: number, amp: number, length: number, phase: number, closed: boolean): string {
-  // Путь шире сцены на длину волны: слой сдвигается на неё в анимации и стыкуется без шва.
+  // The path is wider than the scene by one wavelength: the layer shifts by it in the animation and joins without a seam.
   const points: string[] = []
   for (let x = 0; x <= WIDTH + length; x += 6) points.push(`${x} ${waveY(x, base, amp, length, phase).toFixed(1)}`)
   const line = `M${points.join(' L')}`
   return closed ? `${line} L${WIDTH + length} ${HEIGHT} L0 ${HEIGHT} Z` : line
 }
 
-/** Иллюстрация волны дня (D41): чем выше swell, тем выше и круче волны. */
+/** Today's swell illustration (D41): the higher the swell, the higher and steeper the waves. */
 export function WaveScene({ height }: { height: number }) {
   const t = Math.min(Math.max((height - MIN_SWELL) / (MAX_SWELL - MIN_SWELL), 0), 1)
   const layers = [
@@ -29,7 +29,7 @@ export function WaveScene({ height }: { height: number }) {
     { name: 'near', base: 198 - 4 * t, amp: 4 + 19 * t, length: 230, phase: 0.8 }
   ]
   const near = layers[2] as (typeof layers)[number]
-  // Сёрфер — на ближайшем гребне ближней волны в середине видимой части сцены.
+  // The surfer is on the nearest crest of the near wave, in the middle of the visible part of the scene.
   let surferX = 620
   for (let x = 620; x <= 780; x += 2) {
     if (waveY(x, near.base, near.amp, near.length, near.phase) < waveY(surferX, near.base, near.amp, near.length, near.phase)) surferX = x
@@ -67,7 +67,7 @@ function hintText(swell: Swell): string {
   return grows ? `Come back tomorrow → ${next} m` : `Come back tomorrow to hold ${swell.height.toFixed(1)} m`
 }
 
-/** «Today's swell»: высота волны от регулярности, точности и освоенных слов (D40). */
+/** "Today's swell": wave height from regularity, accuracy and mastered words (D40). */
 export function SwellCard({ swell }: { swell: Swell }) {
   return (
     <section className="swell" aria-label="Today's swell">

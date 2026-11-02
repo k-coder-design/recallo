@@ -3,8 +3,8 @@ import { openTestDatabase } from '../db/testDatabase'
 import { toAppError } from './errors'
 import { SettingsService } from './settings'
 
-describe('Тема оформления (D49)', () => {
-  it('по умолчанию как в macOS, выбор сохраняется, неизвестное значение отклоняется', () => {
+describe('Appearance theme (D49)', () => {
+  it('defaults to macOS, the choice is saved, an unknown value is rejected', () => {
     const settings = new SettingsService(openTestDatabase())
     expect(settings.theme()).toBe('system')
     expect(settings.setTheme('dark')).toBe('dark')

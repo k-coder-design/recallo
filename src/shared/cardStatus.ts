@@ -1,9 +1,9 @@
 import type { CardProgress } from './types'
 
-/** Статус карточки в списке Cards: состояние FSRS, а новая карточка после знакомства — отдельно (D21). */
+/** A card's status in the Cards list: the FSRS state, with a new card after its meeting shown separately (D21). */
 export type CardStatus = 'new' | 'introduced' | 'learning' | 'review' | 'relearning'
 
-/** Порядок — путь слова: новое → знакомое → изучается → на повторении (и снова, если забыто). */
+/** The order is the word's path: new → introduced → learning → review (and again, if forgotten). */
 export const CARD_STATUSES: readonly CardStatus[] = ['new', 'introduced', 'learning', 'review', 'relearning']
 
 export const CARD_STATUS_LABELS: Record<CardStatus, string> = {

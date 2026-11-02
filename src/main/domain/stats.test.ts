@@ -5,7 +5,7 @@ import { MINUTE, setup } from './test-helpers'
 const DAY = 24 * 60 * MINUTE
 
 describe('StatsService', () => {
-  it('раскладывает слова по стадиям', () => {
+  it('sorts words by stage', () => {
     const t = setup()
     t.addCard({ term: 'a' })
     t.addCard({ term: 'b' })
@@ -15,25 +15,25 @@ describe('StatsService', () => {
 
     t.introduceAll()
     t.answer('forgot') // a → learning
-    t.answer('remembered') // b → learning (шаг 10 мин)
+    t.answer('remembered') // b → learning (10 min step)
     t.advance(10 * MINUTE)
-    t.answer('remembered', { avoidCardId: undefined }) // a снова, остаётся в learning
+    t.answer('remembered', { avoidCardId: undefined }) // a again, stays in learning
     const stages = t.stats.overview('en').stages
     expect(stages.new).toBe(0)
     expect(stages.introduced + stages.learning + stages.familiar).toBe(4)
     expect(t.stats.overview('es').total).toBe(0)
   })
 
-  it('считает Learned только при интервале от 3 недель', () => {
+  it('counts Learned only with an interval of 3 weeks or more', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
     t.answer('remembered')
     t.advance(10 * MINUTE)
-    t.answer('remembered') // вышла на долгосрочное повторение
+    t.answer('remembered') // moved to long-term review
     expect(t.stats.overview('en').stages.familiar).toBe(1)
 
-    // Несколько успешных повторений подряд в срок растят интервал.
+    // Several successful on-time reviews in a row grow the interval.
     for (let i = 0; i < 6; i++) {
       const due = new Date(t.cards.get(card.id).progress.due).getTime()
       t.advance(Math.max(0, due - t.now().getTime()))
@@ -42,7 +42,7 @@ describe('StatsService', () => {
     expect(t.stats.overview('en').stages.learned).toBe(1)
   })
 
-  it('считает сегодняшние ответы, удержание и активность по дням', () => {
+  it('counts today answers, retention and activity by day', () => {
     const t = setup()
     t.addCard({ term: 'a' })
     t.addCard({ term: 'b' })
@@ -57,7 +57,7 @@ describe('StatsService', () => {
     expect(stats.activity[13]).toMatchObject({ date: localDate(t.now()), remembered: 1, forgot: 1, introduced: 2 })
   })
 
-  it('считает серию дней подряд и не обрывает её до конца сегодняшнего дня', () => {
+  it('counts the day streak and does not break it before today ends', () => {
     const t = setup()
     t.addCard({ term: 'a' })
     t.addCard({ term: 'b' })
@@ -72,7 +72,7 @@ describe('StatsService', () => {
     expect(t.stats.overview('en').streakDays).toBe(0)
   })
 
-  it('показывает слова, которые забывали минимум дважды', () => {
+  it('shows words that were forgotten at least twice', () => {
     const t = setup()
     const hard = t.addCard({ term: 'hard' })
     t.introduceAll()
@@ -80,7 +80,7 @@ describe('StatsService', () => {
     t.advance(MINUTE)
     t.answer('forgot')
     expect(t.stats.overview('en').hardest).toEqual([
-      { cardId: hard.id, term: 'hard', meaning: 'бегать', forgotCount: 2 }
+      { cardId: hard.id, term: 'hard', meaning: 'to run', forgotCount: 2 }
     ])
   })
 })

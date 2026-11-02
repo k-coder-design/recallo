@@ -15,7 +15,7 @@ import { Modal } from './Modal'
 interface Props {
   spaceId: SpaceId
   sets: CardSet[]
-  /** Набор, открытый сейчас в Cards, — назначение по умолчанию. */
+  /** The set open in Cards right now — the default destination. */
   currentSetId: string | null
   onImported: () => void
   onClose: () => void
@@ -32,7 +32,7 @@ const STATUS_LABELS = { new: 'New', duplicate: 'Duplicate', error: 'Error', crea
 
 type DestinationKey = 'file-sets' | 'new-set' | 'none' | `set:${string}`
 
-/** Импорт карточек: файл → предпросмотр с дублями и ошибками → импорт с отчётом (MVP-4). */
+/** Card import: file → preview with duplicates and errors → import with a report (MVP-4). */
 export function ImportDialog({ spaceId, sets, currentSetId, onImported, onClose }: Props) {
   const [file, setFile] = useState<OpenedFile | null>(null)
   const [format, setFormat] = useState<ImportFormat | undefined>(undefined)
@@ -67,7 +67,7 @@ export function ImportDialog({ spaceId, sets, currentSetId, onImported, onClose 
     }
   }
 
-  // Предпросмотр пересчитывается при смене файла, формата, обмена колонок и учёта дублей.
+  // The preview is recalculated when the file, format, column swap or duplicate handling changes.
   useEffect(() => {
     if (!file) return
     let cancelled = false

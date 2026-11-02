@@ -8,7 +8,7 @@ import { MINUTE, setup } from './domain/test-helpers'
 
 const DAY = 24 * 60 * MINUTE
 
-/** Временные папки тестов удаляются после прогона, чтобы не копиться в системной папке temp. */
+/** Test temp folders are removed after the run so they do not pile up in the system temp folder. */
 const tempDirs: string[] = []
 function tempDir(prefix: string): string {
   const dir = mkdtempSync(join(tmpdir(), prefix))
@@ -33,17 +33,17 @@ function days(from: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) => new Date(start + i * DAY).toISOString().slice(0, 10))
 }
 
-describe('Автоматическая резервная копия (MVP-9)', () => {
-  it('ротация: 7 последних дней и по одной копии за 4 предыдущие недели', () => {
+describe('Automatic backup (MVP-9)', () => {
+  it('rotation: the last 7 days and one backup for each of the 4 previous weeks', () => {
     const all = days('2026-09-01', 45) // 01.09 — 15.10
     const keep = [...backupsToKeep(all)].sort()
     expect(keep).toHaveLength(11)
     expect(keep.slice(-7)).toEqual(all.slice(-7))
-    // Еженедельные — самые свежие даты своих недель (недели с понедельника).
+    // Weekly ones are the most recent dates of their weeks (weeks start on Monday).
     expect(keep.slice(0, 4)).toEqual(['2026-09-13', '2026-09-20', '2026-09-27', '2026-10-04'])
   })
 
-  it('копия делается один раз в день, на следующий день — новая', async () => {
+  it('a backup is made once a day, the next day a new one', async () => {
     const { t, backup, files, settings } = context()
     t.addCard({ term: 'reckless' })
     await backup.runIfDue()
@@ -56,7 +56,7 @@ describe('Автоматическая резервная копия (MVP-9)', (
     expect(files()).toHaveLength(2)
   })
 
-  it('копию принимает восстановление: в ней карточки и прогресс', async () => {
+  it('restore accepts the backup: it has cards and progress', async () => {
     const { t, backup, files, folder } = context()
     t.addCard({ term: 'reckless' })
     t.addCard({ term: 'genuine' })
@@ -65,7 +65,7 @@ describe('Автоматическая резервная копия (MVP-9)', (
     expect(t.transfer.inspectBackup(content)).toMatchObject({ cards: 2 })
   })
 
-  it('за 40 дней остаётся не больше 7 + 4 копий; чужие файлы в папке не трогаются', async () => {
+  it('after 40 days no more than 7 + 4 backups remain; other files in the folder are not touched', async () => {
     const { t, backup, files, folder } = context()
     await backup.runIfDue()
     writeFileSync(join(folder, 'my notes.txt'), 'keep me')
@@ -80,7 +80,7 @@ describe('Автоматическая резервная копия (MVP-9)', (
     expect(files()).toEqual(expect.arrayContaining(['my notes.txt', 'Recallo backup 2026-01-01 manual.json']))
   })
 
-  it('выключенная автокопия ничего не пишет; включение сразу делает копию', async () => {
+  it('a disabled automatic backup writes nothing; enabling it makes a backup right away', async () => {
     const { backup, settings } = context()
     settings.setAutoBackupEnabled(false)
     expect((await backup.runIfDue()).count).toBe(0)
@@ -88,7 +88,7 @@ describe('Автоматическая резервная копия (MVP-9)', (
     expect(state).toMatchObject({ enabled: true, count: 1 })
   })
 
-  it('сбой записи не ломает работу: ошибка сохраняется, следующая удачная копия её сбрасывает', async () => {
+  it('a write failure does not break anything: the error is saved, the next successful backup clears it', async () => {
     const { t, settings } = context()
     const blocked = join(tempDir('recallo-blocked-'), 'file')
     writeFileSync(blocked, 'not a folder')

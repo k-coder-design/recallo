@@ -7,11 +7,11 @@ export type Clock = () => Date
 type Step = `${number}${'m' | 'h' | 'd'}`
 
 export interface SchedulerOptions {
-  /** Шаги изучения новой карточки. */
+  /** Learning steps of a new card. */
   learningSteps?: Step[]
-  /** Шаги после ошибки: примерно 1 мин, затем 10 мин (раздел 10.2). */
+  /** Steps after a mistake: about 1 min, then 10 min (section 10.2). */
   relearningSteps?: Step[]
-  /** Случайный разброс длинных интервалов; в тестах выключается. */
+  /** Random spread of long intervals; turned off in tests. */
   fuzz?: boolean
 }
 
@@ -25,9 +25,9 @@ const STATE_NAMES: Record<State, ProgressState> = {
 }
 
 /**
- * Обёртка над FSRS. Две оценки отображаются на входы алгоритма так:
- * «Вспомнил» → Good, «Не вспомнил» → Again. Голосовая и ручная оценка
- * в MVP-5 используют этот же метод (SRS-13).
+ * A wrapper over FSRS. The two grades map to the algorithm's inputs like this:
+ * "Remembered" → Good, "Forgot" → Again. Voice and manual grading
+ * in MVP-5 would use the same method (SRS-13).
  */
 export class Scheduler {
   private readonly engine: FSRS

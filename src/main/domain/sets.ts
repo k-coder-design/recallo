@@ -16,7 +16,7 @@ interface SetRow {
   card_count: number
 }
 
-/** Условие SQL для области: все карточки, один набор или «без набора». Алиас таблицы карточек — `c`. */
+/** SQL condition for the scope: all cards, one set, or "no set". The cards table alias is `c`. */
 export function scopeCondition(scope: SetScope): { sql: string; params: Record<string, string> } {
   if (scope.kind === 'set') return { sql: 'c.set_id = @scopeSetId', params: { scopeSetId: scope.setId } }
   if (scope.kind === 'none') return { sql: 'c.set_id IS NULL', params: {} }
@@ -54,7 +54,7 @@ export class SetService {
     return rows.map(toSet)
   }
 
-  /** Сколько карточек языка без набора (SET-05). */
+  /** How many cards of the language have no set (SET-05). */
   unsetCount(spaceId: SpaceId): number {
     return this.db
       .prepare('SELECT COUNT(*) FROM cards WHERE space_id = ? AND set_id IS NULL')
@@ -68,7 +68,7 @@ export class SetService {
     return toSet(row)
   }
 
-  /** Набор существует и принадлежит этому языку — иначе карточку туда не положить (API-11). */
+  /** The set exists and belongs to this language — otherwise a card cannot go there (API-11). */
   requireInSpace(setId: string, spaceId: SpaceId): CardSet {
     const set = this.get(setId)
     if (set.spaceId !== spaceId) {
@@ -115,8 +115,8 @@ export class SetService {
   }
 
   /**
-   * Удаляет набор. keep-cards — карточки остаются «без набора» с прогрессом (SET-09);
-   * delete-cards — удаляются вместе с прогрессом и историей. Возвращает число затронутых карточек.
+   * Deletes a set. keep-cards — the cards stay in "no set" with their progress (SET-09);
+   * delete-cards — deleted together with progress and history. Returns the number of affected cards.
    */
   delete(id: string, policy: unknown): { affectedCards: number } {
     const parsedPolicy: SetDeletePolicy = setDeletePolicySchema.parse(policy)

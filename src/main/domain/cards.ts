@@ -57,7 +57,7 @@ export class CardService {
     return space
   }
 
-  /** Карточки языка: вся область, набор или «без набора», с поиском по слову, значению и набору (API-02). */
+  /** Cards of a language: the whole scope, a set or "no set", with search by word, meaning and set (API-02). */
   list(spaceId: SpaceId, query?: CardQuery): Card[] {
     const id = spaceIdSchema.parse(spaceId)
     const { scope, search } = cardQuerySchema.parse(query)
@@ -70,15 +70,15 @@ export class CardService {
       )
       .all({ spaceId: id, ...condition.params }) as Array<CardRow & { set_name: string | null }>
 
-    // Поиск в JS, а не через LIKE: SQLite не умеет без учёта регистра для кириллицы и диакритики,
-    // а ещё нужны примеры, опечатки и порядок по качеству совпадения (D54).
+    // Search in JS, not via LIKE: SQLite cannot ignore case for Cyrillic and diacritics,
+    // and we also need examples, typos and ordering by match quality (D54).
     const cards = this.hydrate(rows)
     if (!search) return cards
     const setNames = new Map(rows.flatMap((r) => (r.set_id && r.set_name ? [[r.set_id, r.set_name] as const] : [])))
     return searchCards(cards, setNames, search)
   }
 
-  /** Карточки того же языка с тем же словом — для предупреждения о дублях. */
+  /** Cards of the same language with the same word — for the duplicate warning. */
   findDuplicates(spaceId: SpaceId, term: string, excludeId?: string): DuplicateCard[] {
     const id = spaceIdSchema.parse(spaceId)
     const rows = this.db
@@ -90,7 +90,7 @@ export class CardService {
     return rows.filter((row) => isSameTerm(row.term, term))
   }
 
-  /** Перенос карточек в набор или «без набора»; прогресс и расписание не меняются (SET-04, SET-07). */
+  /** Move cards into a set or "no set"; progress and schedule do not change (SET-04, SET-07). */
   moveToSet(cardIds: string[], setId: string | null): Card[] {
     const now = this.now().toISOString()
     this.db.transaction(() => {
@@ -151,7 +151,7 @@ export class CardService {
     return this.get(id)
   }
 
-  /** Изменение содержимого не трогает прогресс, если явно не запрошен сброс (CARD-04, CARD-05). */
+  /** Changing content does not touch progress unless a reset is explicitly requested (CARD-04, CARD-05). */
   update(id: string, input: unknown): Card {
     const data = cardUpdateSchema.parse(input)
     const now = this.now()
@@ -164,8 +164,8 @@ export class CardService {
         })
       }
       const term = data.term ?? current.term
-      // Переданная транскрипция сохраняется как есть (пустая — строится заново);
-      // не переданная сохраняется, пока не изменилось само слово.
+      // A passed transcription is kept as is (an empty one is rebuilt);
+      // one not passed is kept until the word itself changes.
       let transcription = current.transcription
       if (data.transcription !== undefined) {
         transcription = normalizeTranscription(data.transcription) ?? transcribe(term, current.spaceId)
@@ -180,13 +180,13 @@ export class CardService {
         transcriptionAlt = transcribeAlt(term, current.spaceId)
       }
       const meaning = data.meaning ?? current.meaning
-      // Набор меняется только если передан; прогресс при переносе сохраняется (SET-07).
+      // The set changes only if passed; progress is kept on a move (SET-07).
       let setId = current.setId
       if (data.setId !== undefined) {
         if (data.setId) this.sets.requireInSpace(data.setId, current.spaceId)
         setId = data.setId ?? null
       }
-      // Выбор пользователя сохраняется; автоматическое эмодзи подбирается заново при смене слова или значения.
+      // The user's choice is kept; an automatic emoji is picked again when the word or meaning changes.
       let emoji: string | null = current.emoji ?? (current.emojiAuto ? null : '')
       let emojiAuto = current.emojiAuto
       if (data.emoji !== undefined) {
@@ -214,13 +214,13 @@ export class CardService {
     return this.get(id)
   }
 
-  /** Подсказка для редактора: какие транскрипции построит приложение для этого слова. */
+  /** Hint for the editor: which transcriptions the app will build for this word. */
   suggestTranscription(spaceId: SpaceId, term: string): TranscriptionSuggestion {
     const space = spaceIdSchema.parse(spaceId)
     return { transcription: transcribe(term, space), transcriptionAlt: transcribeAlt(term, space) }
   }
 
-  /** Варианты произношения карточки для Study: основной первым, затем второй, если он есть у языка (D44). */
+  /** A card's pronunciations for Study: the primary first, then the second one if the language has it (D44). */
   pronunciations(card: Card): Pronunciation[] {
     const primary = PRIMARY_ACCENTS[card.spaceId]
     const alt = ALT_ACCENTS[card.spaceId]
@@ -230,8 +230,8 @@ export class CardService {
   }
 
   /**
-   * Дозаполняет транскрипцию карточек, где её ещё нет (созданных до D22 или со словами,
-   * которых не было в словаре). Не меняет version: это не правка содержимого пользователем.
+   * Fills in the transcription of cards that do not have one yet (created before D22 or with words
+   * that were not in the dictionary). Does not change version: this is not a user edit of the content.
    */
   fillMissingTranscriptions(): number {
     const rows = this.db.prepare('SELECT id, space_id, term FROM cards WHERE transcription IS NULL').all() as Array<
@@ -264,13 +264,13 @@ export class CardService {
     return filled
   }
 
-  /** Эмодзи для редактора: что выберет автоподбор и варианты для ручного выбора. */
+  /** Emoji for the editor: what the automatic pick chooses and options for a manual choice. */
   suggestEmojis(spaceId: SpaceId, term: string, meaning: string): EmojiSuggestions {
     const space = spaceIdSchema.parse(spaceId)
     return { best: suggestEmoji(term, meaning, space), options: suggestEmojis(term, meaning, space) }
   }
 
-  /** Дозаполняет автоматическое эмодзи там, где его ещё не подбирали (D27); выбор пользователя не трогает. */
+  /** Fills in an automatic emoji where none was picked yet (D27); the user's choice is not touched. */
   fillMissingEmojis(): number {
     const rows = this.db
       .prepare('SELECT id, space_id, term, meaning FROM cards WHERE emoji IS NULL AND emoji_auto = 1')
@@ -372,7 +372,7 @@ export class CardService {
   }
 }
 
-/** Пространства со вторым вариантом произношения — для SQL-условия IN (...). */
+/** Spaces with a second pronunciation — for the SQL condition IN (...). */
 function altSpaces(): string {
   return (Object.keys(ALT_ACCENTS) as SpaceId[])
     .filter((id) => ALT_ACCENTS[id])

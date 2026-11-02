@@ -2,18 +2,18 @@ import Database from 'better-sqlite3'
 import { migrate } from './migrations'
 
 export type { Db } from './types'
-/** База приложения для Mac (better-sqlite3): ядру хватает Db, а резервной копии файла нужен весь API. */
+/** The Mac app database (better-sqlite3): the core needs only Db, while backing up the file needs the full API. */
 export type NativeDb = Database.Database
 
-/** Больше разных запросов в приложении нет; кэш с запасом, переполнение просто очищает его. */
+/** The app has no more distinct queries than this; the cache has room to spare, overflow simply clears it. */
 const STATEMENT_CACHE_LIMIT = 300
 
-/** Открывает (или создаёт) базу и применяет миграции. `:memory:` — для тестов. */
+/** Opens (or creates) the database and applies migrations. `:memory:` — for tests. */
 export function openDatabase(file: string): NativeDb {
   const db = new Database(file)
   if (file !== ':memory:') {
     db.pragma('journal_mode = WAL')
-    // В режиме WAL NORMAL не рискует целостностью базы, а запись не ждёт fsync после каждой оценки.
+    // In WAL mode NORMAL does not risk database integrity, and a write does not wait for fsync after every grade.
     db.pragma('synchronous = NORMAL')
   }
   db.pragma('foreign_keys = ON')
@@ -23,9 +23,9 @@ export function openDatabase(file: string): NativeDb {
 }
 
 /**
- * Подготовленные запросы переиспользуются: сервисы вызывают prepare на каждый запрос,
- * а разбор SQL заново на каждой карточке — лишняя работа. Режим pluck/raw/expand,
- * включённый прошлым вызовом, сбрасывается, чтобы общий объект вёл себя как новый.
+ * Prepared statements are reused: services call prepare for every query,
+ * and parsing SQL again for every card is wasted work. A pluck/raw/expand mode
+ * turned on by a previous call is reset so the shared object behaves like a new one.
  */
 function cacheStatements(db: NativeDb): void {
   const prepare = db.prepare.bind(db)

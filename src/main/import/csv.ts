@@ -1,6 +1,6 @@
 /**
- * Разбор CSV по RFC 4180: поля в кавычках, удвоенные кавычки внутри, переносы строк внутри полей.
- * Возвращает строки как массивы полей; пустые строки пропускаются.
+ * CSV parsing per RFC 4180: quoted fields, doubled quotes inside, line breaks inside fields.
+ * Returns rows as arrays of fields; empty lines are skipped.
  */
 export function parseCsv(input: string): string[][] {
   const text = input.charCodeAt(0) === 0xfeff ? input.slice(1) : input
@@ -37,7 +37,7 @@ export function parseCsv(input: string): string[][] {
   return rows
 }
 
-/** CSV с заголовком → объекты по именам колонок. */
+/** CSV with a header → objects by column name. */
 export function parseCsvRecords(input: string): Array<Record<string, string>> {
   const [header, ...rows] = parseCsv(input)
   if (!header) return []

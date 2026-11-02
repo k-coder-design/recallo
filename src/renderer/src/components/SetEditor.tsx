@@ -10,7 +10,7 @@ interface Props {
   onClose: () => void
 }
 
-/** Создание и правка набора: название и необязательное описание (SET-01, SET-03). */
+/** Creating and editing a set: a name and an optional description (SET-01, SET-03). */
 export function SetEditor({ spaceId, set, onSaved, onClose }: Props) {
   const [name, setName] = useState(set?.name ?? '')
   const [description, setDescription] = useState(set?.description ?? '')

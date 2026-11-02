@@ -7,24 +7,24 @@ import { SettingsService } from '../main/domain/settings'
 import { createHandlers, createServices, type AgentApi, type Files, type Services } from '../main/services'
 
 /**
- * Ядро Recallo на телефоне (D57): те же сервисы домена, что на Mac, на SQLite WebAssembly.
- * База хранится в OPFS через VFS «opfs-sahpool»: ему не нужны заголовки COOP/COEP,
- * которых нет на GitHub Pages. Вызовы приходят от моста window.recallo (bridge.ts).
+ * The Recallo core on the phone (D57): the same domain services as on the Mac, on SQLite WebAssembly.
+ * The database is stored in OPFS via the "opfs-sahpool" VFS: it needs no COOP/COEP headers,
+ * which GitHub Pages does not send. Calls come from the window.recallo bridge (bridge.ts).
  */
 const DB_FILE = '/recallo.sqlite'
 
-/** Глобальный объект Worker: только то, что нужно здесь (типы DOM и WebWorker в одной сборке конфликтуют). */
+/** The Worker global object: only what is needed here (DOM and WebWorker types conflict in one build). */
 const scope = self as unknown as {
   addEventListener(type: 'message', listener: (event: MessageEvent<{ id: number; method: unknown; args: unknown[] }>) => void): void
   postMessage(message: unknown): void
 }
 
-/** Отдельные возможности телефона появятся на этапах W1–W4; пока — понятная ошибка. */
+/** Some phone features are handled elsewhere; until then — a clear error. */
 const later = (what: string): never => {
   throw new DomainError('VALIDATION', `${what} is not available on iPhone yet`)
 }
 
-/** MCP и Agent API есть только на Mac: на телефоне раздел всегда выключен. */
+/** MCP and the Agent API exist only on the Mac: on the phone the section is always off. */
 const agentApi: AgentApi = {
   state: () => ({
     enabled: false,
@@ -41,8 +41,8 @@ const agentApi: AgentApi = {
 
 
 /**
- * Служебные методы телефона — не часть API приложения: их вызывает только мост (bridge.ts),
- * когда работу делят Worker и страница: файл готовит ядро здесь, а сохраняет страница (меню «Поделиться»).
+ * Phone helper methods are not part of the app API: only the bridge (bridge.ts) calls them
+ * when the Worker and the page share the work: the core prepares the file here, the page saves it (Share sheet).
  */
 const phoneMethods = (services: Services): Record<string, (...args: unknown[]) => unknown> => ({
   'phone.backupFile': () => services.transfer.backup(),
@@ -51,9 +51,9 @@ const phoneMethods = (services: Services): Record<string, (...args: unknown[]) =
 })
 
 /**
- * Файлы на телефоне: выбор и сохранение делает страница (bridge.ts перехватывает эти вызовы),
- * здесь — только восстановление. Копии текущей базы перед восстановлением на телефоне нет:
- * Settings предлагает сначала сделать копию кнопкой Backup.
+ * Files on the phone: the page picks and saves them (bridge.ts intercepts these calls),
+ * here — only restore. There is no copy of the current database before a restore on the phone:
+ * Settings suggests making a backup with the Backup button first.
  */
 const phoneFiles = (services: Services): Files => ({
   open: async () => later('Opening files from the core'),
@@ -74,7 +74,7 @@ async function start(): Promise<{ handlers: ApiHandlers; phone: ReturnType<typeo
     phoneFiles(services),
     { theme: () => settings.theme(), setTheme: (value) => settings.setTheme(value) },
     {
-      // Автокопии в папку на телефоне нет — вместо неё кнопка Backup (W4).
+      // No automatic backup to a folder on the phone — the Backup button instead (W4).
       state: async () => ({ enabled: false, lastAt: null, lastError: null, folder: '', count: 0 }),
       setEnabled: async () => later('Automatic backup'),
       showFolder: () => undefined

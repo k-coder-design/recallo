@@ -49,13 +49,13 @@ async function call(name: string, args: Record<string, unknown>) {
   try {
     data = JSON.parse(raw)
   } catch {
-    // Текстовое сообщение (например, Recallo закрыт).
+    // A text message (e.g. Recallo is closed).
   }
   return { isError: result.isError === true, data }
 }
 
-describe('MCP-сервер Recallo', () => {
-  it('предлагает инструменты для работы со словарём и помечает удаляющие', async () => {
+describe('Recallo MCP server', () => {
+  it('offers dictionary tools and marks the deleting ones', async () => {
     const { tools } = await client.listTools()
     expect(tools.map((t) => t.name).sort()).toEqual(
       ['add_cards', 'create_set', 'delete_card', 'delete_set', 'get_card', 'list_sets', 'move_cards', 'search_cards', 'update_card', 'update_set'].sort()
@@ -64,8 +64,8 @@ describe('MCP-сервер Recallo', () => {
     expect(tools.find((t) => t.name === 'search_cards')?.annotations?.readOnlyHint).toBe(true)
   })
 
-  it('добавляет слова в набор по названию, пропускает дубли и находит их', async () => {
-    services.cards.create({ spaceId: 'en', term: 'dull', meaning: 'скучный' })
+  it('adds words to a set by name, skips duplicates and finds them', async () => {
+    services.cards.create({ spaceId: 'en', term: 'dull', meaning: 'boring' })
     const missing = await call('add_cards', { language: 'English', set: 'Movie', cards: [{ term: 'gripping', meaning: 'захватывающий' }] })
     expect(missing.isError).toBe(true)
     expect(missing.data.error.code).toBe('SET_NOT_FOUND')
@@ -76,24 +76,25 @@ describe('MCP-сервер Recallo', () => {
       set: 'movie',
       cards: [
         { term: 'gripping', meaning: 'захватывающий', examples: [{ text: "It's a gripping thriller." }] },
-        { term: 'Dull', meaning: 'скучный' }
+        { term: 'Dull', meaning: 'boring' }
       ]
     })
     expect(added.isError).toBe(false)
     expect(added.data.summary).toEqual({ created: 1, duplicates: 1, errors: 0 })
     expect(added.data.results[0]).toMatchObject({ status: 'created', term: 'gripping', transcription: 'ˈɡrɪpɪŋ' })
 
+    // Cyrillic on purpose: the user's meanings are Russian, and agents search them too.
     const found = await call('search_cards', { language: 'en', query: 'захват' })
     expect(found.data.cards).toEqual([expect.objectContaining({ term: 'gripping', set: 'Movie', version: 1 })])
   })
 
-  it('правит карточку по версии и переносит между наборами, сохраняя прогресс', async () => {
-    const card = services.cards.create({ spaceId: 'en', term: 'dull', meaning: 'скучный' })
+  it('edits a card by version and moves it between sets, keeping progress', async () => {
+    const card = services.cards.create({ spaceId: 'en', term: 'dull', meaning: 'boring' })
     await call('create_set', { language: 'en', name: 'Movie' })
 
-    const updated = await call('update_card', { id: card.id, version: 1, meaning: 'скучный, нудный', set: 'Movie' })
-    expect(updated.data).toMatchObject({ meaning: 'скучный, нудный', version: 2 })
-    const stale = await call('update_card', { id: card.id, version: 1, meaning: 'серый' })
+    const updated = await call('update_card', { id: card.id, version: 1, meaning: 'boring, tedious', set: 'Movie' })
+    expect(updated.data).toMatchObject({ meaning: 'boring, tedious', version: 2 })
+    const stale = await call('update_card', { id: card.id, version: 1, meaning: 'dull grey' })
     expect(stale.isError).toBe(true)
     expect(stale.data.error.code).toBe('CONFLICT')
 
@@ -101,16 +102,16 @@ describe('MCP-сервер Recallo', () => {
     expect(services.cards.get(card.id).setId).toBeNull()
   })
 
-  it('удаляет набор только с явно выбранной политикой', async () => {
+  it('deletes a set only with an explicitly chosen policy', async () => {
     const set = (await call('create_set', { language: 'en', name: 'Movie' })).data
-    services.cards.create({ spaceId: 'en', setId: set.id, term: 'dull', meaning: 'скучный' })
+    services.cards.create({ spaceId: 'en', setId: set.id, term: 'dull', meaning: 'boring' })
     const withoutPolicy = await call('delete_set', { set_id: set.id })
     expect(withoutPolicy.isError).toBe(true)
     expect((await call('delete_set', { set_id: set.id, policy: 'keep-cards' })).data).toEqual({ affectedCards: 1 })
     expect(services.cards.list('en')).toHaveLength(1)
   })
 
-  it('понятно сообщает, если Recallo закрыт или API выключен', async () => {
+  it('reports clearly if Recallo is closed or the API is off', async () => {
     rmSync(connectionFile)
     const result = await call('list_sets', { language: 'en' })
     expect(result.isError).toBe(true)

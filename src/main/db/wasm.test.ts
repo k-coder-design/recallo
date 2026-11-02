@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { openTestDatabase, testEngine } from './testDatabase'
 
-// Файл входит только в проект «phone» (vitest.config.ts): база — SQLite WebAssembly.
-describe('SQLite WebAssembly за интерфейсом Db (D57)', () => {
-  it('тесты этого проекта действительно идут на WebAssembly', () => {
+// This file is only in the "phone" project (vitest.config.ts): the database is SQLite WebAssembly.
+describe('SQLite WebAssembly behind the Db interface (D57)', () => {
+  it('the tests of this project really run on WebAssembly', () => {
     expect(testEngine).toBe('wasm')
-    // У базы better-sqlite3 есть backup(); у обёртки WebAssembly — только интерфейс Db.
+    // The better-sqlite3 database has backup(); the WebAssembly wrapper has only the Db interface.
     expect('backup' in openTestDatabase()).toBe(false)
   })
 
-  it('миграции применены: схема та же, что на Mac', () => {
+  it('migrations are applied: the schema is the same as on the Mac', () => {
     const db = openTestDatabase()
     expect(db.pragma('user_version', { simple: true })).toBeGreaterThan(0)
     expect(db.prepare('SELECT id FROM spaces ORDER BY position').pluck().all()).toEqual(['en', 'es'])
   })
 
-  it('именованные параметры без префикса, позиционные — по порядку', () => {
+  it('named parameters without a prefix, positional ones in order', () => {
     const db = openTestDatabase()
     expect(db.prepare('SELECT name FROM spaces WHERE id = @id').pluck().get({ id: 'es' })).toBe('Spanish')
     expect(db.prepare('SELECT name FROM spaces WHERE id = ? OR id = ? ORDER BY position').pluck().all('en', 'es')).toEqual([
@@ -25,7 +25,7 @@ describe('SQLite WebAssembly за интерфейсом Db (D57)', () => {
     expect(() => db.prepare('SELECT name FROM spaces WHERE id = @id').get({})).toThrow(/Missing named parameter "id"/)
   })
 
-  it('кэш запросов сбрасывает pluck, run возвращает число изменений', () => {
+  it('the statement cache resets pluck, run returns the number of changes', () => {
     const db = openTestDatabase()
     const sql = 'SELECT id, name FROM spaces ORDER BY position'
     const first = db.prepare(sql)
@@ -37,7 +37,7 @@ describe('SQLite WebAssembly за интерфейсом Db (D57)', () => {
     expect(db.prepare('SELECT id FROM spaces WHERE id = ?').get('fr')).toBeUndefined()
   })
 
-  it('транзакция откатывается при ошибке, вложенная — только своя часть', () => {
+  it('a transaction rolls back on error, a nested one only its own part', () => {
     const db = openTestDatabase()
     const rename = db.prepare('UPDATE spaces SET name = ? WHERE id = ?')
     const name = () => db.prepare('SELECT name FROM spaces WHERE id = ?').pluck().get('en')
@@ -58,7 +58,7 @@ describe('SQLite WebAssembly за интерфейсом Db (D57)', () => {
           throw new Error('inner')
         })()
       } catch {
-        // Вложенная часть откатилась, внешняя продолжается.
+        // The nested part rolled back, the outer one continues.
       }
     })()
     expect(name()).toBe('Outer')

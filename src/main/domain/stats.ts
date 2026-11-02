@@ -6,12 +6,12 @@ import { computeSwell, SWELL_WINDOW_DAYS } from './swell'
 import { spaceIdSchema } from './validation'
 
 const DAY_MS = 24 * 60 * 60 * 1000
-/** С какого интервала повторения слово считается Learned (как «mature» в Anki). */
+/** From what review interval a word counts as Learned (like "mature" in Anki). */
 export const LEARNED_INTERVAL_DAYS = 21
 const ACTIVITY_DAYS = 14
 const HARDEST_LIMIT = 10
 
-/** Локальная дата YYYY-MM-DD: дни считаются по часам пользователя, а не по UTC. */
+/** Local date YYYY-MM-DD: days are counted by the user's clock, not UTC. */
 export function localDate(date: Date): string {
   const y = date.getFullYear()
   const m = String(date.getMonth() + 1).padStart(2, '0')
@@ -115,7 +115,7 @@ export class StatsService {
       }
     }
 
-    // Серия: если сегодня ещё не занимались, она не обрывается до конца дня.
+    // Streak: if there was no study today yet, it does not break until the day ends.
     let streakDays = 0
     let offset = activeDays.has(localDate(now)) ? 0 : -1
     while (activeDays.has(localDate(startOfLocalDay(now, offset)))) {
@@ -152,7 +152,7 @@ export class StatsService {
     })
   }
 
-  /** Часто забываемые слова: кандидаты на уточнение определения или пример (SRS-12). */
+  /** Often forgotten words: candidates for a clearer definition or example (SRS-12). */
   private hardest(spaceId: SpaceId): HardWord[] {
     return this.db
       .prepare(

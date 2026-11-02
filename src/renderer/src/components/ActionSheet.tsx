@@ -7,17 +7,17 @@ export interface SheetAction {
 }
 
 interface Props {
-  /** Заголовок над действиями, например слово карточки или имя набора. */
+  /** A title above the actions, e.g. the card word or the set name. */
   title?: ReactNode
   actions: SheetAction[]
   onClose: () => void
-  /** Дополнительное содержимое над списком действий (например, выбор набора). */
+  /** Extra content above the action list (e.g. a set picker). */
   children?: ReactNode
 }
 
 /**
- * Меню действий снизу экрана для телефона (W3): как системное меню iOS — список больших кнопок
- * и «Cancel». Выбор действия закрывает меню; закрыть можно касанием вне меню.
+ * An action menu at the bottom of the screen for the phone (W3): like the iOS system menu — a list of large buttons
+ * and "Cancel". Choosing an action closes the menu; tapping outside closes it too.
  */
 export function ActionSheet({ title, actions, onClose, children }: Props) {
   useEffect(() => {

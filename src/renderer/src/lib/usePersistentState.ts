@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-/** Небольшие настройки интерфейса (например, выбранный язык) — в localStorage. */
+/** Small interface settings (e.g. the chosen language) — in localStorage. */
 export function usePersistentState<T extends string>(key: string, initial: T, allowed: readonly T[]) {
   const [value, setValue] = useState<T>(() => {
     try {
@@ -15,7 +15,7 @@ export function usePersistentState<T extends string>(key: string, initial: T, al
     try {
       window.localStorage.setItem(key, value)
     } catch {
-      // Хранилище недоступно — настройка просто не запомнится.
+      // Storage is unavailable — the setting simply will not be remembered.
     }
   }, [key, value])
 

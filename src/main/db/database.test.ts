@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { openDatabase } from './database'
 
-describe('openDatabase: кэш подготовленных запросов', () => {
-  it('возвращает тот же запрос, сбрасывая режим pluck прошлого вызова', () => {
+describe('openDatabase: prepared statement cache', () => {
+  it('returns the same statement, resetting the pluck mode of the previous call', () => {
     const db = openDatabase(':memory:')
     const sql = 'SELECT id, name FROM spaces ORDER BY position'
     const first = db.prepare(sql)
@@ -12,7 +12,7 @@ describe('openDatabase: кэш подготовленных запросов', (
     expect(second.get()).toEqual({ id: 'en', name: 'English' })
   })
 
-  it('кэширует и запросы без результата', () => {
+  it('caches statements without a result too', () => {
     const db = openDatabase(':memory:')
     const sql = 'UPDATE spaces SET name = ? WHERE id = ?'
     expect(db.prepare(sql)).toBe(db.prepare(sql))

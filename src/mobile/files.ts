@@ -1,11 +1,11 @@
 import type { OpenedFile, SaveResult } from '../shared/types'
 
-/** Как на Mac (fileTransfer.ts): больше 20 МБ ни импорт, ни копия не бывают. */
+/** As on the Mac (fileTransfer.ts): neither an import nor a backup is ever larger than 20 MB. */
 const MAX_FILE_BYTES = 20 * 1024 * 1024
 
 /**
- * Выбор файла на телефоне (D57): системный выбор из «Файлов», iCloud Drive и т. п.
- * Вызывать сразу из нажатия кнопки — иначе iOS не откроет выбор. Отмена — null.
+ * Picking a file on the phone (D57): the system picker for Files, iCloud Drive and so on.
+ * Call it right from a button tap — otherwise iOS will not open the picker. Cancel — null.
  */
 export function openFile(kind: 'import' | 'backup'): Promise<OpenedFile | null> {
   return new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ export function openFile(kind: 'import' | 'backup'): Promise<OpenedFile | null> 
         () => finish(null, new Error('Could not read this file.'))
       )
     })
-    // Закрыли выбор, ничего не выбрав (Safari 16.4+ и Chromium сообщают это событием cancel).
+    // The picker was closed without choosing (Safari 16.4+ and Chromium report it with a cancel event).
     input.addEventListener('cancel', () => finish(null))
     document.body.append(input)
     input.click()
@@ -38,9 +38,9 @@ export function openFile(kind: 'import' | 'backup'): Promise<OpenedFile | null> 
 }
 
 /**
- * Сохранение файла на телефоне (D57): системное меню «Поделиться» с файлом — «Сохранить в Файлы»,
- * iCloud Drive, AirDrop. Где меню с файлами недоступно (браузер на компьютере) — обычная загрузка.
- * Путь к файлу браузер не сообщает, поэтому path всегда null.
+ * Saving a file on the phone (D57): the system Share sheet with the file — Save to Files,
+ * iCloud Drive, AirDrop. Where a Share sheet with files is unavailable (a desktop browser) — a regular download.
+ * The browser does not report the file path, so path is always null.
  */
 export async function saveFile(filename: string, content: string, type = 'application/json'): Promise<SaveResult> {
   const file = new File([content], filename, { type })
@@ -49,9 +49,9 @@ export async function saveFile(filename: string, content: string, type = 'applic
       await navigator.share({ files: [file] })
       return { saved: true, path: null }
     } catch (error) {
-      // Пользователь закрыл меню — ничего не сохранено, это не ошибка.
+      // The user closed the sheet — nothing saved, and that is not an error.
       if (error instanceof DOMException && error.name === 'AbortError') return { saved: false, path: null }
-      // NotAllowedError: меню требует свежего нажатия, а оно «истекло», пока готовился файл, — тогда загрузка.
+      // NotAllowedError: the sheet needs a fresh tap, which "expired" while the file was prepared — then a download.
       if (!(error instanceof DOMException && error.name === 'NotAllowedError')) throw error
     }
   }
@@ -67,6 +67,6 @@ function download(file: File): void {
   document.body.append(link)
   link.click()
   link.remove()
-  // Ссылку освобождаем позже: Safari начинает загрузку не сразу.
+  // Release the link later: Safari does not start the download right away.
   window.setTimeout(() => URL.revokeObjectURL(url), 60_000)
 }

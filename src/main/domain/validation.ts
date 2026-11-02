@@ -16,7 +16,7 @@ const termSchema = z.string().trim().min(1, 'Enter a word or phrase')
 const meaningSchema = z.string().trim().min(1, 'Enter a meaning')
 const transcriptionSchema = z.string().max(300, 'Transcription is too long').nullish()
 const emojiSchema = z.string().trim().max(32, 'Choose a single emoji').nullish()
-/** Набор карточки: id набора или null — «без набора». */
+/** A card's set: a set id or null — "no set". */
 const setIdSchema = z.string().min(1).nullish()
 
 export const cardCreateSchema = z.object({
@@ -62,7 +62,7 @@ export const setUpdateSchema = z.object({
   description: setDescriptionSchema.optional()
 })
 
-/** Политика удаления набора обязательна: без неё карточки не удаляются неявно (SET-11). */
+/** A set deletion policy is required: without it cards are never deleted implicitly (SET-11). */
 export const setDeletePolicySchema = z.enum(['keep-cards', 'delete-cards'], {
   error: 'Choose what to do with the cards: keep-cards or delete-cards'
 })

@@ -3,22 +3,22 @@ import { DomainError } from './errors'
 import { setup } from './test-helpers'
 
 describe('CardService', () => {
-  it('создаёт карточку с примерами и начальным прогрессом', () => {
+  it('creates a card with examples and initial progress', () => {
     const t = setup()
     const card = t.addCard({
-      examples: [{ text: 'I run every day.', translation: 'Я бегаю каждый день.' }, { text: 'Run!' }]
+      examples: [{ text: 'I run every day.', translation: 'Every day I go running.' }, { text: 'Run!' }]
     })
     expect(card.id).toMatch(/^[0-9a-f-]{36}$/)
     expect(card.version).toBe(1)
     expect(card.examples).toEqual([
-      { text: 'I run every day.', translation: 'Я бегаю каждый день.', maskFragments: [] },
+      { text: 'I run every day.', translation: 'Every day I go running.', maskFragments: [] },
       { text: 'Run!', translation: null, maskFragments: [] }
     ])
     expect(card.progress.state).toBe('new')
     expect(t.cards.list('en').map((c) => c.id)).toEqual([card.id])
   })
 
-  it('заполняет транскрипцию автоматически и сохраняет ручную', () => {
+  it('fills in the transcription automatically and keeps a manual one', () => {
     const t = setup()
     expect(t.addCard({ term: 'loophole' }).transcription).toBe('ˈlupˌhoʊl')
     expect(t.addCard({ spaceId: 'es', term: 'llamar' }).transcription).toBe('ʃaˈmaɾ')
@@ -26,15 +26,15 @@ describe('CardService', () => {
     expect(t.addCard({ term: 'doomscrolling' }).transcription).toBeNull()
   })
 
-  it('пересчитывает транскрипцию при смене слова, но не трогает ручную правку без смены слова', () => {
+  it('rebuilds the transcription when the word changes, but keeps a manual edit without a word change', () => {
     const t = setup()
     const card = t.addCard({ term: 'run', transcription: 'rʌn!' })
-    expect(t.cards.update(card.id, { version: 1, meaning: 'бежать' }).transcription).toBe('rʌn!')
+    expect(t.cards.update(card.id, { version: 1, meaning: 'to dash' }).transcription).toBe('rʌn!')
     expect(t.cards.update(card.id, { version: 2, term: 'loophole' }).transcription).toBe('ˈlupˌhoʊl')
     expect(t.cards.update(card.id, { version: 3, transcription: '' }).transcription).toBe('ˈlupˌhoʊl')
   })
 
-  it('дозаполняет транскрипцию карточек без неё, не меняя версию', () => {
+  it('fills in transcriptions of cards without one, without changing the version', () => {
     const t = setup()
     const card = t.addCard({ term: 'loophole' })
     t.db.prepare('UPDATE cards SET transcription = NULL').run()
@@ -42,24 +42,24 @@ describe('CardService', () => {
     expect(t.cards.get(card.id)).toMatchObject({ transcription: 'ˈlupˌhoʊl', version: 1 })
   })
 
-  it('у испанской карточки два варианта произношения, у английской — один (D44)', () => {
+  it('a Spanish card has two pronunciations, an English one has one (D44)', () => {
     const t = setup()
     const es = t.addCard({ spaceId: 'es', term: 'llamar' })
     expect(es).toMatchObject({ transcription: 'ʃaˈmaɾ', transcriptionAlt: 'ʝaˈmaɾ' })
     expect(t.addCard({ term: 'loophole', transcriptionAlt: 'x' }).transcriptionAlt).toBeNull()
 
-    // Ручная правка сохраняется, при смене слова оба варианта строятся заново.
+    // A manual edit is kept; when the word changes, both variants are rebuilt.
     expect(t.cards.update(es.id, { version: 1, transcriptionAlt: '/ʎaˈmaɾ/' }).transcriptionAlt).toBe('ʎaˈmaɾ')
-    expect(t.cards.update(es.id, { version: 2, meaning: 'звать' }).transcriptionAlt).toBe('ʎaˈmaɾ')
+    expect(t.cards.update(es.id, { version: 2, meaning: 'to call' }).transcriptionAlt).toBe('ʎaˈmaɾ')
     expect(t.cards.update(es.id, { version: 3, term: 'cerveza' })).toMatchObject({ transcription: 'seɾˈbesa', transcriptionAlt: 'θeɾˈbeθa' })
 
-    // Карточки, созданные до второго варианта, дозаполняются без смены версии.
+    // Cards created before the second variant are filled in without a version change.
     t.db.prepare('UPDATE cards SET transcription_alt = NULL').run()
     expect(t.cards.fillMissingTranscriptions()).toBe(1)
     expect(t.cards.get(es.id)).toMatchObject({ transcriptionAlt: 'θeɾˈbeθa', version: 4 })
   })
 
-  it('в Study видны оба варианта произношения с языками голоса', () => {
+  it('Study shows both pronunciations with their voice languages', () => {
     const t = setup()
     t.addCard({ spaceId: 'es', term: 'llamar' })
     const next = t.study.next('es')
@@ -70,40 +70,40 @@ describe('CardService', () => {
     ])
   })
 
-  it('подбирает эмодзи автоматически и сохраняет выбор пользователя', () => {
+  it("picks an emoji automatically and keeps the user's choice", () => {
     const t = setup()
-    const auto = t.addCard({ term: 'trapped', meaning: 'в ловушке' })
+    const auto = t.addCard({ term: 'trapped', meaning: 'caught in a trap' })
     expect(auto).toMatchObject({ emoji: '🪤', emojiAuto: true })
 
-    const chosen = t.addCard({ term: 'trapped', meaning: 'в ловушке', emoji: '🕸️' })
+    const chosen = t.addCard({ term: 'trapped', meaning: 'caught in a trap', emoji: '🕸️' })
     expect(chosen).toMatchObject({ emoji: '🕸️', emojiAuto: false })
-    const none = t.addCard({ term: 'trapped', meaning: 'в ловушке', emoji: null })
+    const none = t.addCard({ term: 'trapped', meaning: 'caught in a trap', emoji: null })
     expect(none).toMatchObject({ emoji: null, emojiAuto: false })
 
-    // Смена слова или значения обновляет только автоматическое эмодзи.
-    expect(t.cards.update(auto.id, { version: 1, term: 'stain', meaning: 'пятно' }).emoji).not.toBe('🪤')
-    expect(t.cards.update(chosen.id, { version: 1, meaning: 'кошка' }).emoji).toBe('🕸️')
-    expect(t.cards.update(none.id, { version: 1, meaning: 'кошка' }).emoji).toBeNull()
+    // Changing the word or meaning updates only an automatic emoji.
+    expect(t.cards.update(auto.id, { version: 1, term: 'stain', meaning: 'a dirty mark' }).emoji).not.toBe('🪤')
+    expect(t.cards.update(chosen.id, { version: 1, meaning: 'a cat' }).emoji).toBe('🕸️')
+    expect(t.cards.update(none.id, { version: 1, meaning: 'a cat' }).emoji).toBeNull()
   })
 
-  it('дозаполняет автоматическое эмодзи, не трогая «без эмодзи» пользователя', () => {
+  it('fills in an automatic emoji without touching the user choice of "no emoji"', () => {
     const t = setup()
-    const auto = t.addCard({ term: 'trapped', meaning: 'в ловушке' })
-    const none = t.addCard({ term: 'trapped', meaning: 'в ловушке', emoji: null })
+    const auto = t.addCard({ term: 'trapped', meaning: 'caught in a trap' })
+    const none = t.addCard({ term: 'trapped', meaning: 'caught in a trap', emoji: null })
     t.db.prepare('UPDATE cards SET emoji = NULL WHERE emoji_auto = 1').run()
     expect(t.cards.fillMissingEmojis()).toBe(1)
     expect(t.cards.get(auto.id).emoji).toBe('🪤')
     expect(t.cards.get(none.id).emoji).toBeNull()
   })
 
-  it('проверяет обязательные поля', () => {
+  it('checks required fields', () => {
     const t = setup()
     expect(() => t.addCard({ term: '  ' })).toThrow('Enter a word or phrase')
     expect(() => t.addCard({ meaning: '' })).toThrow('Enter a meaning')
     expect(() => t.cards.create({ spaceId: 'fr', term: 'a', meaning: 'b' })).toThrow()
   })
 
-  it('держит карточки языков раздельно', () => {
+  it('keeps cards of different languages apart', () => {
     const t = setup()
     t.addCard()
     t.addCard({ spaceId: 'es', term: 'correr' })
@@ -111,7 +111,7 @@ describe('CardService', () => {
     expect(t.cards.list('es').map((c) => c.term)).toEqual(['correr'])
   })
 
-  it('сохраняет прогресс при редактировании содержимого', () => {
+  it('keeps progress when the content is edited', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -120,16 +120,16 @@ describe('CardService', () => {
 
     const updated = t.cards.update(card.id, {
       version: 1,
-      meaning: 'бежать',
+      meaning: 'to dash',
       examples: [{ text: 'They ran.', maskFragments: ['ran'] }]
     })
     expect(updated.version).toBe(2)
-    expect(updated.meaning).toBe('бежать')
+    expect(updated.meaning).toBe('to dash')
     expect(updated.examples[0]?.maskFragments).toEqual(['ran'])
     expect(updated.progress).toEqual(before)
   })
 
-  it('сбрасывает прогресс только по явному запросу', () => {
+  it('resets progress only on an explicit request', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -140,21 +140,21 @@ describe('CardService', () => {
     expect(reset.progress.reps).toBe(0)
   })
 
-  it('не даёт перезаписать более свежую версию', () => {
+  it('does not overwrite a newer version', () => {
     const t = setup()
     const card = t.addCard()
-    t.cards.update(card.id, { version: 1, meaning: 'бежать' })
+    t.cards.update(card.id, { version: 1, meaning: 'to dash' })
     try {
-      t.cards.update(card.id, { version: 1, meaning: 'мчаться' })
+      t.cards.update(card.id, { version: 1, meaning: 'to rush' })
       expect.unreachable()
     } catch (error) {
       expect(error).toBeInstanceOf(DomainError)
       expect((error as DomainError).code).toBe('CONFLICT')
     }
-    expect(t.cards.get(card.id).meaning).toBe('бежать')
+    expect(t.cards.get(card.id).meaning).toBe('to dash')
   })
 
-  it('удаляет карточку вместе с прогрессом и историей', () => {
+  it('deletes a card together with its progress and history', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()

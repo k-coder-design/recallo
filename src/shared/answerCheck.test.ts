@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { answerVariants, checkAnswer, diffAnswer } from './answerCheck'
 
-describe('проверка введённого ответа (MVP-8)', () => {
+describe('typed answer check (MVP-8)', () => {
   it.each([
     ['go the extra mile', 'Go the extra mile', 'en'],
     ['GO THE EXTRA MILE!', 'Go the extra mile', 'en'],
@@ -18,31 +18,31 @@ describe('проверка введённого ответа (MVP-8)', () => {
     ['get a grip on yourself', 'get a grip (on yourself)', 'en'],
     ['be a recipe for trouble', 'be a recipe for disaster, trouble, success, etc.', 'en'],
     ['meet someone’s expectations', "meet sb's expectations", 'en']
-  ] as const)('«%s» верно для «%s»', (typed, term, space) => {
+  ] as const)('"%s" is correct for "%s"', (typed, term, space) => {
     expect(checkAnswer(typed, term, space)).toMatchObject({ verdict: 'correct', suggestedGrade: 'remembered' })
   })
 
-  it('одна опечатка в ответе от 5 букв — «almost», засчитывается', () => {
+  it('one typo in an answer of 5+ letters is almost and counts', () => {
     expect(checkAnswer('reckles', 'reckless', 'en')).toMatchObject({ verdict: 'almost', suggestedGrade: 'remembered' })
-    expect(checkAnswer('seasonde', 'seasoned', 'en').verdict).toBe('wrong') // перестановка — две правки
+    expect(checkAnswer('seasonde', 'seasoned', 'en').verdict).toBe('wrong') // a swap is two edits
   })
 
-  it('в коротком слове опечатка — уже ошибка', () => {
+  it('in a short word a typo is already a mistake', () => {
     expect(checkAnswer('lid', 'lit', 'en')).toMatchObject({ verdict: 'wrong', suggestedGrade: 'forgot' })
   })
 
-  it('другое слово — неверно, пустой ввод — «empty»', () => {
+  it('another word is wrong, empty input is empty', () => {
     expect(checkAnswer('careless', 'reckless', 'en')).toMatchObject({ verdict: 'wrong', expected: 'reckless' })
     expect(checkAnswer('   ', 'reckless', 'en')).toMatchObject({ verdict: 'empty', suggestedGrade: 'forgot' })
   })
 
-  it('для ошибки показывает ближайший вариант ответа и разницу', () => {
+  it('for a mistake shows the nearest answer variant and the difference', () => {
     const check = checkAnswer('Que tel', '¿Como te va? / ¿Qué tal?', 'es')
     expect(check.expected).toBe('¿Qué tal?')
     expect(check.diff.some((p) => p.kind === 'wrong')).toBe(true)
   })
 
-  it('варианты ответа карточки', () => {
+  it('a card answer variants', () => {
     expect(answerVariants('hold/keep sth (sb) at bay')).toEqual(
       expect.arrayContaining(['hold sth sb at bay', 'keep sth sb at bay', 'hold sth at bay', 'keep sth at bay'])
     )
@@ -54,12 +54,12 @@ describe('проверка введённого ответа (MVP-8)', () => {
     ])
   })
 
-  it('совсем другой ответ не сравнивается посимвольно', () => {
+  it('a completely different answer is not compared character by character', () => {
     expect(checkAnswer('wrong guess', 'reckless', 'en').diff).toEqual([{ text: 'wrong guess', kind: 'wrong' }])
     expect(checkAnswer('reckels', 'reckless', 'en').diff.length).toBeGreaterThan(1)
   })
 
-  it('разница: совпавшие, лишние и пропущенные символы', () => {
+  it('difference: matched, extra and missing characters', () => {
     expect(diffAnswer('reckles', 'reckless')).toEqual([
       { text: 'reckles', kind: 'same' },
       { text: 's', kind: 'missing' }

@@ -1,16 +1,16 @@
 /**
- * Транскрипция испанского по правилам чтения, два варианта (D22, D44):
- * - es-AR, ríoplatense: ll и y перед гласной → [ʃ], c(e/i) и z → [s];
- * - es-ES, кастильский: ll и y перед гласной → [ʝ], c(e/i) и z → [θ].
- * Широкая (фонологическая) запись без аллофонов β ð ɣ.
+ * Spanish transcription by reading rules, two variants (D22, D44):
+ * - es-AR, Rioplatense: ll and y before a vowel → [ʃ], c(e/i) and z → [s];
+ * - es-ES, Castilian: ll and y before a vowel → [ʝ], c(e/i) and z → [θ].
+ * Broad (phonological) notation without the allophones β ð ɣ.
  */
 
 export type SpanishVariant = 'es-AR' | 'es-ES'
 
 interface VariantRules {
-  /** ll и y перед гласной. */
+  /** ll and y before a vowel. */
   palatal: string
-  /** c перед e/i и z. */
+  /** c before e/i, and z. */
   sibilant: string
 }
 
@@ -22,10 +22,10 @@ const VARIANTS: Record<SpanishVariant, VariantRules> = {
 interface Segment {
   ipa: string
   vowel: boolean
-  /** Сильная гласная (a, e, o или с ударением): образует отдельный слог. */
+  /** A strong vowel (a, e, o or accented): forms its own syllable. */
   strong: boolean
   accented: boolean
-  /** Конечная y (muy, hoy): всегда глайд, слоговой не бывает. */
+  /** Final y (muy, hoy): always a glide, never syllabic. */
   glide?: boolean
 }
 
@@ -47,7 +47,7 @@ const FRONT = new Set(['e', 'i', 'é', 'í'])
 const SIMPLE: Record<string, string> = {
   b: 'b', d: 'd', f: 'f', k: 'k', l: 'l', m: 'm', n: 'n', p: 'p', s: 's', t: 't', v: 'b', j: 'x', ñ: 'ɲ', w: 'w'
 }
-/** Неразделимые сочетания: согласный + l/ɾ уходят в один слог (pla-to, ha-blar). */
+/** Inseparable clusters: a consonant + l/ɾ go into one syllable (pla-to, ha-blar). */
 const CLUSTER_FIRST = new Set(['p', 'b', 'f', 't', 'd', 'k', 'ɡ'])
 const CLUSTER_SECOND = new Set(['l', 'ɾ'])
 
@@ -84,10 +84,10 @@ function segment(word: string, rules: VariantRules): Segment[] {
     else if (c === 'h') continue
     else if (c === 'x') {
       out.push(consonant('k'), consonant('s'))
-      // excelente: xc перед e/i читается [ks], а не [kss].
+      // excelente: xc before e/i reads [ks], not [kss].
       if (next === 'c' && FRONT.has(afterNext)) i++
     } else if (c === 'y') {
-      // Перед гласной y — согласный (как ll); после гласной (muy, hoy) — глайд; отдельно (y) — гласная i.
+      // Before a vowel y is a consonant (like ll); after a vowel (muy, hoy) — a glide; alone (y) — the vowel i.
       if (VOWEL_MAP[next]) out.push(consonant(rules.palatal))
       else out.push({ ipa: 'i', vowel: true, strong: false, accented: false, glide: out.length > 0 && out[out.length - 1]?.vowel === true })
     } else if (c === 'r') {
@@ -104,9 +104,9 @@ interface Syllable {
   accented: boolean
 }
 
-/** Делит слово на слоги: дифтонги (слабая i/u рядом с гласной) остаются в одном слоге. */
+/** Splits a word into syllables: diphthongs (a weak i/u next to a vowel) stay in one syllable. */
 function syllabify(segments: Segment[]): Syllable[] {
-  // Ядра: подряд идущие гласные, разделённые между двумя сильными.
+  // Nuclei: consecutive vowels, split between two strong ones.
   const nuclei: Array<[number, number]> = []
   for (let i = 0; i < segments.length; i++) {
     if (!segments[i]?.vowel) continue
@@ -140,7 +140,7 @@ function syllabify(segments: Segment[]): Syllable[] {
   return syllables
 }
 
-/** Слабые гласные рядом с другой гласной того же слога — глайды j / w (bueno → ˈbweno). */
+/** Weak vowels next to another vowel of the same syllable become glides j / w (bueno → ˈbweno). */
 function syllableIpa(syllable: Syllable): string {
   const vowels = syllable.segments.filter((s) => s.vowel)
   const candidates = vowels.filter((s) => !s.glide)
@@ -159,14 +159,14 @@ function transcribeWord(word: string, rules: VariantRules): string {
   const syllables = syllabify(segment(word, rules))
   let stressed = syllables.findIndex((s) => s.accented)
   if (stressed === -1) {
-    // Без знака ударения: на гласную, n или s — предпоследний слог, иначе последний.
+    // No accent mark: ending in a vowel, n or s — the penultimate syllable, otherwise the last.
     const last = word[word.length - 1] ?? ''
     stressed = /[aeiouns]/.test(last) ? Math.max(0, syllables.length - 2) : syllables.length - 1
   }
   return syllables.map((s, i) => (syllables.length > 1 && i === stressed ? 'ˈ' : '') + syllableIpa(s)).join('')
 }
 
-/** Транскрипция испанского слова или фразы; по умолчанию — аргентинский вариант пространства. */
+/** Transcription of a Spanish word or phrase; by default the space's Argentine variant. */
 export function transcribeSpanish(phrase: string, variant: SpanishVariant = 'es-AR'): string | null {
   const words = phrase
     .toLowerCase()

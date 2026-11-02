@@ -40,8 +40,8 @@ async function api(method: string, path: string, body?: unknown, headers: Record
   return { status: res.status, headers: res.headers, body: text ? (JSON.parse(text) as any) : undefined }
 }
 
-describe('REST API: доступ', () => {
-  it('без токена или с чужим токеном отвечает 401, health и описание доступны без токена', async () => {
+describe('REST API: access', () => {
+  it('answers 401 without a token or with a wrong one; health and the description need no token', async () => {
     expect((await fetch(`${base}/languages`)).status).toBe(401)
     expect((await api('GET', '/languages', undefined, { Authorization: 'Bearer wrong' })).status).toBe(401)
     expect((await fetch(`${base}/health`)).status).toBe(200)
@@ -50,7 +50,7 @@ describe('REST API: доступ', () => {
     expect(Object.keys(doc.paths)).toContain('/api/v1/cards/batch')
   })
 
-  it('отклоняет чужой Host (защита от DNS rebinding) и не отдаёт CORS-заголовков', async () => {
+  it('rejects a foreign Host (DNS rebinding protection) and sends no CORS headers', async () => {
     const { request } = await import('node:http')
     const status = await new Promise<number>((resolve) => {
       const url = new URL(`${base}/health`)
@@ -61,7 +61,7 @@ describe('REST API: доступ', () => {
     expect(res.headers.get('access-control-allow-origin')).toBeNull()
   })
 
-  it('возвращает ошибки в стабильной структуре', async () => {
+  it('returns errors in a stable structure', async () => {
     const res = await api('GET', '/cards/missing')
     expect(res.status).toBe(404)
     expect(res.body).toEqual({ error: { code: 'NOT_FOUND', message: 'Card not found', details: { id: 'missing' } } })
@@ -69,8 +69,8 @@ describe('REST API: доступ', () => {
   })
 })
 
-describe('REST API: наборы и карточки', () => {
-  it('создаёт набор и карточку, отдаёт данные для маскирования и не отдаёт прогресс', async () => {
+describe('REST API: sets and cards', () => {
+  it('creates a set and a card, returns masking data and does not return progress', async () => {
     const set = await api('POST', '/sets', { language: 'en', name: 'Movie' })
     expect(set.status).toBe(201)
     const card = await api('POST', '/cards', {
@@ -88,25 +88,26 @@ describe('REST API: наборы и карточки', () => {
 
     const list = await api('GET', `/cards?language=en&set=${set.body.id}`)
     expect(list.body.total).toBe(1)
+    // Cyrillic on purpose: the user's meanings are in Russian, and search must ignore case there too.
     expect((await api('GET', '/cards?language=en&search=ЗАХВАТ')).body.cards[0].term).toBe('gripping')
   })
 
-  it('не создаёт дубль молча: 409 DUPLICATE, а с allowDuplicates — создаёт', async () => {
-    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' })
-    const dup = await api('POST', '/cards', { language: 'en', term: 'Dull', meaning: 'скучный' })
+  it('does not create a duplicate silently: 409 DUPLICATE, and with allowDuplicates it creates', async () => {
+    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' })
+    const dup = await api('POST', '/cards', { language: 'en', term: 'Dull', meaning: 'boring' })
     expect(dup.status).toBe(409)
     expect(dup.body.error.code).toBe('DUPLICATE')
     expect(dup.body.error.details.existing[0].term).toBe('dull')
-    expect((await api('POST', '/cards', { language: 'en', term: 'Dull', meaning: 'тупой', allowDuplicates: true })).status).toBe(201)
+    expect((await api('POST', '/cards', { language: 'en', term: 'Dull', meaning: 'blunt', allowDuplicates: true })).status).toBe(201)
   })
 
-  it('массовое создание отчитывается по каждой карточке и не скрывает частичные ошибки', async () => {
-    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' })
+  it('bulk creation reports on each card and does not hide partial errors', async () => {
+    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' })
     const res = await api('POST', '/cards/batch', {
       language: 'en',
       cards: [
-        { term: 'gripping', meaning: 'захватывающий' },
-        { term: 'dull', meaning: 'скучный' },
+        { term: 'gripping', meaning: 'exciting' },
+        { term: 'dull', meaning: 'boring' },
         { term: 'hilarious', meaning: '' }
       ]
     })
@@ -116,17 +117,17 @@ describe('REST API: наборы и карточки', () => {
     expect(res.body.results[2].error.code).toBe('VALIDATION')
   })
 
-  it('защищает от перезаписи свежей версии и требует версию', async () => {
-    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' })).body
-    expect((await api('PATCH', `/cards/${card.id}`, { meaning: 'нудный' })).status).toBe(428)
-    expect((await api('PATCH', `/cards/${card.id}`, { meaning: 'нудный' }, { 'If-Match': '"1"' })).body.version).toBe(2)
-    const stale = await api('PATCH', `/cards/${card.id}`, { version: 1, meaning: 'серый' })
+  it('protects a newer version from overwriting and requires a version', async () => {
+    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' })).body
+    expect((await api('PATCH', `/cards/${card.id}`, { meaning: 'tedious' })).status).toBe(428)
+    expect((await api('PATCH', `/cards/${card.id}`, { meaning: 'tedious' }, { 'If-Match': '"1"' })).body.version).toBe(2)
+    const stale = await api('PATCH', `/cards/${card.id}`, { version: 1, meaning: 'dull grey' })
     expect(stale.status).toBe(409)
     expect(stale.body.error.code).toBe('CONFLICT')
   })
 
-  it('массово обновляет карточки с результатом по каждой', async () => {
-    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' })).body
+  it('bulk-updates cards with a result for each', async () => {
+    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' })).body
     const res = await api('PATCH', '/cards/batch', {
       updates: [
         { id: card.id, version: 1, emoji: '😴' },
@@ -138,25 +139,25 @@ describe('REST API: наборы и карточки', () => {
     expect(res.body.results[1].error.code).toBe('NOT_FOUND')
   })
 
-  it('удаляет набор только с явной политикой', async () => {
+  it('deletes a set only with an explicit policy', async () => {
     const set = (await api('POST', '/sets', { language: 'en', name: 'Movie' })).body
-    const card = (await api('POST', '/cards', { language: 'en', setId: set.id, term: 'dull', meaning: 'скучный' })).body
+    const card = (await api('POST', '/cards', { language: 'en', setId: set.id, term: 'dull', meaning: 'boring' })).body
     expect((await api('DELETE', `/sets/${set.id}`)).status).toBe(400)
     expect((await api('DELETE', `/sets/${set.id}?policy=keep-cards`)).body).toEqual({ affectedCards: 1 })
     expect((await api('GET', `/cards/${card.id}`)).body.setId).toBeNull()
   })
 
-  it('переносит карточки между наборами', async () => {
+  it('moves cards between sets', async () => {
     const set = (await api('POST', '/sets', { language: 'en', name: 'Movie' })).body
-    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' })).body
+    const card = (await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' })).body
     const moved = await api('POST', '/cards/move', { cardIds: [card.id], setId: set.id })
     expect(moved.body.cards[0].setId).toBe(set.id)
   })
 })
 
-describe('REST API: идемпотентность', () => {
-  it('повтор запроса с тем же ключом не создаёт дубль и возвращает тот же ответ', async () => {
-    const body = { language: 'en', term: 'dull', meaning: 'скучный' }
+describe('REST API: idempotency', () => {
+  it('repeating a request with the same key does not create a duplicate and returns the same answer', async () => {
+    const body = { language: 'en', term: 'dull', meaning: 'boring' }
     const first = await api('POST', '/cards', body, { 'Idempotency-Key': 'key-1' })
     const second = await api('POST', '/cards', body, { 'Idempotency-Key': 'key-1' })
     expect(second.status).toBe(201)
@@ -165,9 +166,9 @@ describe('REST API: идемпотентность', () => {
     expect(services.cards.list('en')).toHaveLength(1)
   })
 
-  it('тот же ключ с другим телом — 422', async () => {
-    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'скучный' }, { 'Idempotency-Key': 'key-2' })
-    const res = await api('POST', '/cards', { language: 'en', term: 'gripping', meaning: 'захватывающий' }, { 'Idempotency-Key': 'key-2' })
+  it('the same key with a different body — 422', async () => {
+    await api('POST', '/cards', { language: 'en', term: 'dull', meaning: 'boring' }, { 'Idempotency-Key': 'key-2' })
+    const res = await api('POST', '/cards', { language: 'en', term: 'gripping', meaning: 'exciting' }, { 'Idempotency-Key': 'key-2' })
     expect(res.status).toBe(422)
     expect(res.body.error.code).toBe('IDEMPOTENCY_MISMATCH')
   })

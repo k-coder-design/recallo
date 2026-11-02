@@ -12,7 +12,7 @@ export class DomainError extends Error {
   }
 }
 
-/** Приводит любую ошибку к стабильной структуре ответа (API-12). */
+/** Maps any error to the stable response structure (API-12). */
 export function toAppError(error: unknown): AppError {
   if (error instanceof DomainError) {
     return { code: error.code, message: error.message, details: error.details }

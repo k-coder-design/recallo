@@ -4,9 +4,9 @@ import ruData from 'emojibase-data/ru/compact.json'
 import type { SpaceId } from '../../shared/types'
 
 /**
- * Подбор эмодзи-ассоциации без сети (D27): по названиям и тегам эмодзи из emojibase
- * на английском, русском и испанском. Это грубая эвристика — пользователь всегда может
- * выбрать другой; более точный подбор появится с ИИ в MVP-6.
+ * Offline emoji association (D27): by emoji names and tags from emojibase
+ * in English, Russian and Spanish. It is a rough heuristic — the user can always
+ * choose another; a more accurate pick would come with AI in MVP-6.
  */
 
 type Lang = 'en' | 'ru' | 'es'
@@ -19,7 +19,7 @@ interface CompactEmoji {
   order?: number
 }
 
-/** Группы emojibase: 2 — компоненты (оттенки кожи и т. п.), 9 — флаги; для ассоциаций не берём. */
+/** emojibase groups: 2 — components (skin tones etc.), 9 — flags; not used for associations. */
 const EXCLUDED_GROUPS = new Set([2, 9])
 
 const STOPWORDS: Record<Lang, Set<string>> = {
@@ -28,6 +28,7 @@ const STOPWORDS: Record<Lang, Set<string>> = {
       ' '
     )
   ),
+  // Russian stop words: the user's meanings are in Russian, so emoji are matched in Russian too.
   ru: new Set(
     'и в во на с со к ко по за от до для не ни что как это то быть был была были его её ее их чем при из у о об а но или же ли бы кто чего кого-либо что-либо чему-либо кому-либо чем-либо свой своей свою'.split(
       ' '
@@ -37,7 +38,7 @@ const STOPWORDS: Record<Lang, Set<string>> = {
 }
 
 interface Index {
-  /** Слово → эмодзи с весом: совпадение по названию весомее, чем по тегу. */
+  /** Word → emoji with a weight: a name match weighs more than a tag match. */
   words: Map<string, Map<string, number>>
 }
 
@@ -48,6 +49,7 @@ function normalize(word: string): string {
     .toLowerCase()
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
+    // Russian "yo" is often typed as "ye": treat them as the same letter.
     .replace(/ё/g, 'е')
 }
 
@@ -84,7 +86,7 @@ function getIndexes(): Record<Lang, Index> {
   return indexes
 }
 
-/** Простые окончания (английский, испанский): drives → drive, making → make, casas → casa. */
+/** Simple endings (English, Spanish): drives → drive, making → make, casas → casa. */
 function stems(token: string, lang: Lang): string[] {
   if (lang === 'ru') return [token]
   const out = [token]
@@ -93,13 +95,13 @@ function stems(token: string, lang: Lang): string[] {
   }
   if (lang === 'en') {
     if (token.endsWith('ing') && token.length > 5) out.push(`${token.slice(0, -3)}e`)
-    // Удвоенная согласная: trapped → trap, running → run.
+    // Doubled consonant: trapped → trap, running → run.
     for (const stem of [...out]) if (/([b-df-hj-np-tv-z])\1$/.test(stem)) out.push(stem.slice(0, -1))
   }
   return out
 }
 
-/** Ключи индекса для слова: точное совпадение или основа; для русского — общее начало (падежи). */
+/** Index keys for a word: an exact match or a stem; for Russian — a common start (cases). */
 function matches(index: Index, token: string, lang: Lang): Array<[Map<string, number>, number]> {
   const found: Array<[Map<string, number>, number]> = []
   stems(token, lang).forEach((stem, i) => {
@@ -119,7 +121,7 @@ function scoreText(text: string, langs: Lang[], weight: number, scores: Map<stri
     for (const token of tokens(text)) {
       if (STOPWORDS[lang].has(token)) continue
       for (const [emojis, strength] of matches(all[lang], token, lang)) {
-        // Слова вроде good или small подходят к десяткам эмодзи и почти ничего не говорят.
+        // Words like good or small fit dozens of emoji and say almost nothing.
         const specificity = 1 / Math.sqrt(emojis.size)
         for (const [emoji, w] of emojis) {
           scores.set(emoji, (scores.get(emoji) ?? 0) + weight * strength * w * specificity)
@@ -130,6 +132,7 @@ function scoreText(text: string, langs: Lang[], weight: number, scores: Map<stri
 }
 
 function textLangs(text: string, spaceId: SpaceId): Lang[] {
+  // Cyrillic text means a Russian meaning.
   if (/[а-яё]/i.test(text)) return ['ru']
   return spaceId === 'en' ? ['en'] : ['es', 'en']
 }
@@ -141,25 +144,25 @@ function ranked(scores: Map<string, number>, limit: number): string[] {
     .map(([emoji]) => emoji)
 }
 
-/** Порог уверенной ассоциации: ниже — лучше без эмодзи, чем со случайным. */
+/** Threshold of a confident association: below it, better no emoji than a random one. */
 const MIN_SCORE = 1.2
 
 function collectScores(term: string, meaning: string, spaceId: SpaceId, scores: Map<string, number>): void {
-  // В идиомах отдельные слова обманчивы (go the extra mile — не про космос), поэтому для фраз важнее значение.
+  // In idioms single words are misleading (go the extra mile is not about space), so for phrases the meaning matters more.
   const isPhrase = term.trim().split(/\s+/).length > 1
   scoreText(term, spaceId === 'en' ? ['en'] : ['es'], isPhrase ? 0.7 : 2, scores)
-  // Пояснения в скобках часто на другом языке: «Любитель (someone who does something for fun)».
+  // Explanations in parentheses are often in another language: a Russian word followed by "(someone who does something for fun)".
   for (const part of meaning.split(/[();,/]/)) scoreText(part, textLangs(part, spaceId), 1.6, scores)
 }
 
-/** Варианты эмодзи для выбора в редакторе, лучший первым. */
+/** Emoji options to choose from in the editor, best first. */
 export function suggestEmojis(term: string, meaning: string, spaceId: SpaceId, limit = 8): string[] {
   const scores = new Map<string, number>()
   collectScores(term, meaning, spaceId, scores)
   return ranked(scores, limit)
 }
 
-/** Лучшее эмодзи или null, если уверенной ассоциации нет. */
+/** The best emoji, or null if there is no confident association. */
 export function suggestEmoji(term: string, meaning: string, spaceId: SpaceId): string | null {
   const scores = new Map<string, number>()
   collectScores(term, meaning, spaceId, scores)
@@ -167,7 +170,7 @@ export function suggestEmoji(term: string, meaning: string, spaceId: SpaceId): s
   return best !== undefined && (scores.get(best) ?? 0) >= MIN_SCORE ? best : null
 }
 
-/** Поиск эмодзи для выбора вручную: по названию и тегам на всех трёх языках. */
+/** Emoji search for manual choice: by name and tags in all three languages. */
 export function searchEmojis(query: string, limit = 48): string[] {
   const scores = new Map<string, number>()
   const q = query.trim()

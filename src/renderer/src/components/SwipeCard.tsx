@@ -3,9 +3,9 @@ import { useRef, type PointerEvent, type ReactNode } from 'react'
 const THRESHOLD = 110
 
 interface Props {
-  /** Свайп разрешён только после раскрытия ответа (LEARN-06). */
+  /** Swiping is allowed only after the answer is revealed (LEARN-06). */
   swipeEnabled: boolean
-  /** Дополнительный класс, например рамка нового слова или фаза переворота. */
+  /** An extra class, e.g. the new-word frame or a flip phase. */
   className?: string | undefined
   labels?: { left: string; right: string }
   onSwipe: (direction: 'left' | 'right') => void
@@ -27,7 +27,7 @@ export function SwipeCard({
   const start = useRef<number | null>(null)
   const moved = useRef(false)
 
-  /** Перетаскивание двигает карточку напрямую в DOM: без перерисовки содержимого на каждое движение указателя. */
+  /** Dragging moves the card directly in the DOM: no re-render of the content on every pointer move. */
   const show = (offset: number) => {
     if (card.current) card.current.style.transform = offset ? `translateX(${offset}px) rotate(${offset / 25}deg)` : ''
     const progress = String(Math.min(Math.abs(offset) / THRESHOLD, 1))
@@ -60,7 +60,7 @@ export function SwipeCard({
     if (start.current === null) return
     const delta = event.clientX - start.current
     if (swipeEnabled && Math.abs(delta) >= THRESHOLD) {
-      // Смахнутая карточка остаётся там, где её отпустили: дальше её уводит анимация ухода, а не возврат в центр.
+      // A swiped card stays where it was released: from there the leave animation takes it, not a return to center.
       start.current = null
       card.current?.classList.remove('dragging')
       onSwipe(delta > 0 ? 'right' : 'left')

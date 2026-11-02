@@ -2,24 +2,24 @@ import { describe, expect, it } from 'vitest'
 import { arpabetToIpa } from './english'
 import { normalizeTranscription, transcribe, transcribeAlt } from './index'
 
-describe('английская транскрипция (CMU → IPA)', () => {
-  it('ставит ударение перед началом ударного слога', () => {
+describe('English transcription (CMU → IPA)', () => {
+  it('puts the stress mark before the stressed syllable', () => {
     expect(arpabetToIpa('L UW1 P HH OW2 L')).toBe('ˈlupˌhoʊl')
     expect(arpabetToIpa('M AH0 T IH1 K Y AH0 L AH0 S')).toBe('məˈtɪkjələs')
     expect(arpabetToIpa('IH0 K S T R AO1 R D AH0 N EH2 R IY0')).toBe('ɪkˈstrɔrdəˌnɛri')
   })
 
-  it('не ставит ударение в односложных словах', () => {
+  it('puts no stress mark in one-syllable words', () => {
     expect(arpabetToIpa('G UH1 D')).toBe('ɡʊd')
   })
 
-  it('транскрибирует фразы и сокращения словарных статей', () => {
+  it('transcribes phrases and dictionary abbreviations', () => {
     expect(transcribe('am used to', 'en')).toBe('æm just tu')
     expect(transcribe('Go the extra mile', 'en')).toBe('ɡoʊ ðə ˈɛkstrə maɪl')
     expect(transcribe("meet sb's expectations", 'en')).toBe('mit ˈsʌmˌbɑdiz ˌɛkspɛkˈteɪʃənz')
   })
 
-  it('ставит ударения в сложных словах через дефис', () => {
+  it('stresses hyphenated compound words', () => {
     expect(transcribe('binge-watch', 'en')).toBe('ˈbɪndʒˌwɑtʃ')
     expect(transcribe('second-guess', 'en')).toBe('ˈsɛkəndˌɡɛs')
     expect(transcribe('sky-high', 'en')).toBe('ˈskaɪˌhaɪ')
@@ -27,12 +27,12 @@ describe('английская транскрипция (CMU → IPA)', () => {
     expect(transcribe('out-of-pocket', 'en')).toBe('ˌaʊtʌvˈpɑkət')
   })
 
-  it('возвращает null, если слова нет в словаре', () => {
+  it('returns null if a word is not in the dictionary', () => {
     expect(transcribe('doomscrolling', 'en')).toBeNull()
   })
 })
 
-describe('испанская транскрипция (rioplatense)', () => {
+describe('Spanish transcription (Rioplatense)', () => {
   const cases: Array<[string, string]> = [
     ['¡Hola!', 'ˈola'],
     ['Me llamo / Mi nombre es', 'me ˈʃamo / mi ˈnombɾe es'],
@@ -59,7 +59,7 @@ describe('испанская транскрипция (rioplatense)', () => {
   })
 })
 
-describe('испанская транскрипция, вариант Испании (D44)', () => {
+describe('Spanish transcription, Spain variant (D44)', () => {
   it.each([
     ['Me llamo / Mi nombre es', 'me ˈʝamo / mi ˈnombɾe es'],
     ['¿Cómo te llamás?', 'ˈkomo te ʝaˈmas'],
@@ -72,18 +72,18 @@ describe('испанская транскрипция, вариант Испан
     expect(transcribeAlt(term, 'es')).toBe(ipa)
   })
 
-  it('в аргентинском варианте те же слова звучат с [ʃ] и [s]', () => {
+  it('in the Argentine variant the same words sound with [ʃ] and [s]', () => {
     expect(transcribe('cerveza', 'es')).toBe('seɾˈbesa')
     expect(transcribe('yo', 'es')).toBe('ʃo')
   })
 
-  it('у английского второго варианта нет', () => {
+  it('English has no second variant', () => {
     expect(transcribeAlt('water', 'en')).toBeNull()
   })
 })
 
 describe('normalizeTranscription', () => {
-  it('убирает косые черты и скобки, пустое превращает в null', () => {
+  it('removes slashes and brackets, turns empty into null', () => {
     expect(normalizeTranscription(' /ˈola/ ')).toBe('ˈola')
     expect(normalizeTranscription('[ˈola]')).toBe('ˈola')
     expect(normalizeTranscription('  ')).toBeNull()

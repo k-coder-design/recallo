@@ -3,8 +3,8 @@ import type { Result } from '../shared/types'
 import { openFile, saveFile } from './files'
 
 /**
- * window.recallo в телефонной сборке: на Mac вызовы идут в main-процесс Electron через IPC,
- * здесь — в Web Worker, где работают ядро и база SQLite (D57). Интерфейс не отличает одно от другого.
+ * window.recallo in the phone build: on the Mac calls go to the Electron main process via IPC,
+ * here — to a Web Worker that runs the core and the SQLite database (D57). The interface cannot tell the difference.
  */
 const worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
 const pending = new Map<number, (result: Result<unknown>) => void>()
@@ -17,14 +17,14 @@ worker.addEventListener('message', (event: MessageEvent<{ id: number; result: Re
 })
 
 worker.addEventListener('error', (event) => {
-  // Worker не загрузился: ответить ошибкой всем ждущим вызовам, а не оставить экран висеть.
+  // The Worker failed to load: answer all waiting calls with an error instead of leaving the screen hanging.
   for (const resolve of pending.values()) {
     resolve({ ok: false, error: { code: 'INTERNAL', message: `Recallo could not start: ${event.message}` } })
   }
   pending.clear()
 })
 
-/** Вызов Worker: методы API и служебные методы телефона (`phone.*`, см. worker.ts). */
+/** A Worker call: API methods and phone helper methods (`phone.*`, see worker.ts). */
 function callWorker(method: string, args: unknown[]): Promise<Result<unknown>> {
   return new Promise((resolve) => {
     const id = ++nextId
@@ -34,8 +34,8 @@ function callWorker(method: string, args: unknown[]): Promise<Result<unknown>> {
 }
 
 /**
- * Методы, которым нужна страница, а не Worker: меню «Поделиться» и выбор файлов работают
- * только в окне и только сразу после нажатия. Файл готовит ядро в Worker, сохраняет — страница.
+ * Methods that need the page, not the Worker: the Share sheet and the file picker work
+ * only in the window and only right after a tap. The core in the Worker prepares the file, the page saves it.
  */
 const inPage: Partial<Record<ApiMethod, (...args: unknown[]) => Promise<Result<unknown>>>> = {
   'transfer.openFile': (kind) => inPageResult(() => openFile(kind as 'import' | 'backup')),
@@ -44,7 +44,7 @@ const inPage: Partial<Record<ApiMethod, (...args: unknown[]) => Promise<Result<u
     saveFromWorker('phone.exportFile', [spaceId, scope, format], format === 'csv' ? 'text/csv' : 'application/json')
 }
 
-/** Файл готовит ядро в Worker ({ filename, content }), сохраняет страница (saveFile). */
+/** The core in the Worker prepares the file ({ filename, content }), the page saves it (saveFile). */
 async function saveFromWorker(method: string, args: unknown[], type: string): Promise<Result<unknown>> {
   const file = await callWorker(method, args)
   if (!file.ok) return file

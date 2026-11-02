@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { toSpeechText } from './speech'
 
-describe('текст для озвучки', () => {
+describe('text for speech', () => {
   it.each([
     ['¿Cómo te llamás?', 'es-ES', 'Cómo te llamás?'],
     ['¡Hola!', 'es-ES', 'Hola!'],
@@ -16,7 +16,7 @@ describe('текст для озвучки', () => {
     expect(toSpeechText(text, lang)).toBe(expected)
   })
 
-  it('испанские слова с sb/sth внутри не трогает', () => {
+  it('leaves Spanish words with sb/sth inside untouched', () => {
     expect(toSpeechText('sbarro sthe', 'es-ES')).toBe('sbarro sthe')
   })
 })

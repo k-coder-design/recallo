@@ -1,9 +1,9 @@
 /**
- * Для какой сборки интерфейс: 'mac' — приложение Electron, 'phone' — Recallo: Mobile для iPhone (D57).
- * Значение подставляется при сборке (define в electron.vite.config.ts и vite.mobile.config.ts);
- * без него (например, в тестах) — 'mac'.
+ * Which build the interface is for: 'mac' — the Electron app, 'phone' — Recallo: Mobile for iPhone (D57).
+ * The value is set at build time (define in electron.vite.config.ts and vite.mobile.config.ts);
+ * without it (e.g. in tests) — 'mac'.
  */
 export const PLATFORM: 'mac' | 'phone' = typeof __RECALLO_PLATFORM__ === 'string' ? __RECALLO_PLATFORM__ : 'mac'
 
-/** На iPhone нет MCP и Agent API, автокопии в папку и Finder — такие настройки не показываются (D59). */
+/** On iPhone there is no MCP or Agent API, no automatic backup to a folder or Finder — such settings are not shown (D59). */
 export const IS_PHONE = PLATFORM === 'phone'

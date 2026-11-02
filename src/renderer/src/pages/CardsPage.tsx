@@ -26,7 +26,7 @@ export function CardsPage({ spaceId, onChanged }: Props) {
   const [unsetCount, setUnsetCount] = useState(0)
   const [scope, setScope] = useState<SetScope>({ kind: 'all' })
   const [search, setSearch] = useState('')
-  /** Фильтр по статусу слова; null — все статусы. */
+  /** Filter by word status; null — all statuses. */
   const [status, setStatus] = useState<CardStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [editing, setEditing] = useState<Card | 'new' | null>(null)
@@ -34,7 +34,7 @@ export function CardsPage({ spaceId, onChanged }: Props) {
   const [editingSet, setEditingSet] = useState<CardSet | 'new' | null>(null)
   const [deletingSet, setDeletingSet] = useState<CardSet | null>(null)
   const [transfer, setTransfer] = useState<'import' | 'export' | null>(null)
-  /** Телефон (W3): меню действий страницы («⋯» у выбора набора) или карточки («⋯» в строке). */
+  /** Phone (W3): the page action menu ("⋯" next to the set picker) or a card's ("⋯" in the row). */
   const [menu, setMenu] = useState<'page' | Card | null>(null)
 
   const currentSet = scope.kind === 'set' ? (sets.find((s) => s.id === scope.setId) ?? null) : null
@@ -95,7 +95,7 @@ export function CardsPage({ spaceId, onChanged }: Props) {
     }
   }
 
-  // Сколько карточек каждого статуса в текущей области и поиске — числа на кнопках фильтра.
+  // How many cards of each status are in the current scope and search — numbers on the filter buttons.
   const statusCounts = useMemo(() => {
     const counts = Object.fromEntries(CARD_STATUSES.map((s) => [s, 0])) as Record<CardStatus, number>
     for (const card of cards ?? []) counts[cardStatus(card.progress)]++

@@ -12,7 +12,7 @@ export class ApiError extends Error {
   }
 }
 
-/** Вызов main-процесса; ошибка домена превращается в исключение ApiError. */
+/** A call to the main process; a domain error becomes an ApiError exception. */
 export async function call<M extends ApiMethod>(
   method: M,
   ...args: Parameters<ApiContract[M]>

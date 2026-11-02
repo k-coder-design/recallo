@@ -1,8 +1,8 @@
 import { defineConfig } from 'vitest/config'
 
-// Тесты запускаются через Electron в режиме Node (см. скрипт `test`),
-// чтобы better-sqlite3 использовал ту же сборку, что и приложение.
-// Тесты ядра (домен, база) идут дважды: на better-sqlite3 (Mac) и на SQLite WebAssembly (телефон, D57).
+// Tests run through Electron in Node mode (see the `test` script),
+// so better-sqlite3 uses the same build as the app.
+// Core tests (domain, database) run twice: on better-sqlite3 (Mac) and on SQLite WebAssembly (phone, D57).
 export default defineConfig({
   test: {
     environment: 'node',

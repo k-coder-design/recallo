@@ -3,14 +3,14 @@ import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
-/** Где Recallo оставляет адрес API и токен, пока Agent API включён. */
+/** Where Recallo leaves the API address and token while the Agent API is on. */
 export function defaultConnectionFile(): string {
   return process.env['RECALLO_CONNECTION_FILE'] ?? join(homedir(), 'Library/Application Support/Recallo/agent-api.json')
 }
 
 export class RecalloUnavailableError extends Error {}
 
-/** Ошибка API Recallo с кодом из тела ответа (API-12). */
+/** A Recallo API error with the code from the response body (API-12). */
 export class RecalloApiError extends Error {
   constructor(
     readonly status: number,
@@ -25,8 +25,8 @@ export class RecalloApiError extends Error {
 const NOT_RUNNING = 'Recallo is not running or its Agent API is turned off. Ask the user to open Recallo and turn on Settings → Agent API, then try again.'
 
 /**
- * Клиент локального API Recallo. Файл подключения читается заново на каждый вызов:
- * смена порта или токена в Settings подхватывается без перезапуска агента.
+ * A client of the local Recallo API. The connection file is re-read on every call:
+ * a port or token change in Settings is picked up without restarting the agent.
  */
 export class RecalloClient {
   constructor(private readonly connectionFile = defaultConnectionFile()) {}
@@ -36,7 +36,7 @@ export class RecalloClient {
       const data = JSON.parse(readFileSync(this.connectionFile, 'utf8')) as { url?: string; token?: string }
       if (data.url && data.token) return { url: data.url, token: data.token }
     } catch {
-      // Нет файла — Recallo закрыт или API выключен.
+      // No file — Recallo is closed or the API is off.
     }
     throw new RecalloUnavailableError(NOT_RUNNING)
   }
@@ -50,7 +50,7 @@ export class RecalloClient {
         headers: {
           Authorization: `Bearer ${token}`,
           ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
-          // Каждый вызов инструмента — один ключ: сетевой повтор не создаст дубль (API-14).
+          // Each tool call is one key: a network retry will not create a duplicate (API-14).
           ...(method !== 'GET' ? { 'Idempotency-Key': randomUUID() } : {})
         },
         ...(body !== undefined ? { body: JSON.stringify(body) } : {})

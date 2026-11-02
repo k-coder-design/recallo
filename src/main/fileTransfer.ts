@@ -8,13 +8,13 @@ import type { TransferService } from './domain/transfer'
 
 const MAX_FILE_BYTES = 20 * 1024 * 1024
 /**
- * Только для автотестов: системные диалоги нельзя нажать программно, поэтому при заданных
- * переменных файл открывается из `${RECALLO_TEST_OPEN_DIR}/<import|backup>`, а сохраняется в RECALLO_TEST_SAVE_DIR.
+ * For automated tests only: system dialogs cannot be clicked programmatically, so with these
+ * variables set the file is opened from `${RECALLO_TEST_OPEN_DIR}/<import|backup>` and saved to RECALLO_TEST_SAVE_DIR.
  */
 const TEST_OPEN_DIR = process.env['RECALLO_TEST_OPEN_DIR']
 const TEST_SAVE_DIR = process.env['RECALLO_TEST_SAVE_DIR']
 
-/** Файловые диалоги macOS вокруг импорта, экспорта и полной копии: файлы читает и пишет только main-процесс. */
+/** macOS file dialogs around import, export and the full backup: only the main process reads and writes files. */
 export class FileTransfer {
   constructor(
     private readonly transfer: TransferService,
@@ -30,7 +30,7 @@ export class FileTransfer {
     if (TEST_OPEN_DIR) return { name: `${kind}.test`, content: await readFile(join(TEST_OPEN_DIR, kind), 'utf8') }
     const options: Electron.OpenDialogOptions = {
       title: kind === 'import' ? 'Import cards' : 'Restore from backup',
-      // Восстановление открывается сразу в папке автокопий (D51).
+      // Restore opens right in the automatic backups folder (D51).
       ...(kind === 'backup' ? { defaultPath: join(this.userDataDir, 'backups') } : {}),
       properties: ['openFile'],
       filters:
@@ -73,7 +73,7 @@ export class FileTransfer {
     return this.save(file.filename, file.content, 'Recallo backup')
   }
 
-  /** Перед восстановлением текущая база сохраняется рядом с ней — шаг можно откатить. */
+  /** Before restoring, the current database is saved next to it — the step can be undone. */
   async restore(content: string): Promise<BackupSummary & { safetyCopy: string }> {
     this.transfer.inspectBackup(content)
     const stamp = new Date().toISOString().replace(/[:.]/g, '-')

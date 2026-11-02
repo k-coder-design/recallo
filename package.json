@@ -3,7 +3,7 @@
   "productName": "Recallo",
   "version": "0.11.2",
   "private": true,
-  "description": "Десктопное приложение для запоминания слов и фраз на английском и испанском",
+  "description": "Desktop app for remembering English and Spanish words and phrases",
   "main": "./out/main/index.js",
   "engines": {
     "node": ">=22"

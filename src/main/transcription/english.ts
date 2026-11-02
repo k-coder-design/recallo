@@ -1,6 +1,6 @@
 import { dictionary } from 'cmu-pronouncing-dictionary'
 
-/** ARPAbet (словарь CMU) → IPA, американское произношение (D22). */
+/** ARPAbet (CMU dictionary) → IPA, American pronunciation (D22). */
 const VOWELS: Record<string, string> = {
   AA: 'ɑ',
   AE: 'æ',
@@ -44,7 +44,7 @@ const CONSONANTS: Record<string, string> = {
   ZH: 'ʒ'
 }
 
-/** Сочетания согласных, с которых может начинаться английский слог: перед ними ставится знак ударения. */
+/** Consonant clusters an English syllable can start with: the stress mark goes before them. */
 const ONSETS = new Set(
   [
     'P L', 'P R', 'B L', 'B R', 'T R', 'D R', 'K L', 'K R', 'G L', 'G R', 'F L', 'F R', 'TH R', 'SH R',
@@ -54,7 +54,7 @@ const ONSETS = new Set(
   ]
 )
 
-/** Сокращения из словарных статей: «sb», «sth» читаются как полные слова. */
+/** Dictionary abbreviations: "sb", "sth" are read as full words. */
 const ABBREVIATIONS: Record<string, string> = {
   sb: 'somebody',
   smb: 'somebody',
@@ -83,7 +83,7 @@ function vowelIpa({ base, stress }: Phone): string {
 
 const isVowel = (phone: Phone): boolean => phone.stress !== null
 
-/** Слово в ARPAbet → IPA со знаками ударения ˈ и ˌ (в односложных словах ударение не ставится). */
+/** A word in ARPAbet → IPA with stress marks ˈ and ˌ (no stress mark in one-syllable words). */
 export function arpabetToIpa(arpabet: string): string {
   const phones = parsePhones(arpabet)
   const marks = new Map<number, string>()
@@ -92,7 +92,7 @@ export function arpabetToIpa(arpabet: string): string {
   if (syllables > 1) {
     phones.forEach((phone, index) => {
       if (phone.stress !== '1' && phone.stress !== '2') return
-      // Начало слога: самая длинная допустимая группа согласных перед ударной гласной.
+      // Syllable onset: the longest allowed consonant group before the stressed vowel.
       let start = index
       while (start > 0 && !isVowel(phones[start - 1] as Phone)) start--
       let onset = index
@@ -115,9 +115,9 @@ export function arpabetToIpa(arpabet: string): string {
 const UNSTRESSED_PARTS = new Set(['of', 'the', 'a', 'an', 'to', 'in', 'on', 'and', 'or', 'for', 'at', 'by'])
 
 /**
- * Сложное слово через дефис: если у какой-то части есть своё главное ударение, остальные
- * односложные части получают второстепенное (ˌlaɪkˈmaɪndəd, ˌaʊtʌvˈpɑkət); если все части
- * односложные — главное на первой (ˈskaɪˌhaɪ). Служебные слова остаются без ударения.
+ * A hyphenated compound: if some part has its own primary stress, the other
+ * one-syllable parts get secondary stress (ˌlaɪkˈmaɪndəd, ˌaʊtʌvˈpɑkət); if all parts
+ * are one syllable — primary stress on the first (ˈskaɪˌhaɪ). Function words stay unstressed.
  */
 function compoundIpa(words: string[], arpabet: string[]): string {
   const ipa = arpabet.map(arpabetToIpa)
@@ -134,7 +134,7 @@ function lookup(word: string): string | null {
   const key = ABBREVIATIONS[word] ?? word
   const direct = dictionary[key]
   if (direct) return arpabetToIpa(direct)
-  // Слова через дефис (second-guess) — по частям.
+  // Hyphenated words (second-guess) — part by part.
   if (key.includes('-')) {
     const parts = key.split('-').filter(Boolean).map((part) => dictionary[part])
     if (parts.length > 0 && parts.every(Boolean)) return compoundIpa(key.split('-').filter(Boolean), parts as string[])
@@ -142,7 +142,7 @@ function lookup(word: string): string | null {
   return null
 }
 
-/** Транскрипция английского слова или фразы; null, если хоть одного слова нет в словаре. */
+/** Transcription of an English word or phrase; null if any word is not in the dictionary. */
 export function transcribeEnglish(phrase: string): string | null {
   const words = phrase
     .toLowerCase()
@@ -156,7 +156,7 @@ export function transcribeEnglish(phrase: string): string | null {
 
   const result: string[] = []
   words.forEach((word, index) => {
-    // «used to» в значении «привык» читается [just], а не [juzd].
+    // "used to" meaning "accustomed" is read [just], not [juzd].
     const ipa = word === 'used' && words[index + 1] === 'to' ? 'just' : lookup(word)
     result.push(ipa ?? '')
   })

@@ -1,6 +1,6 @@
 /**
- * node:crypto для телефонной сборки (D57): ядру нужны только randomUUID (id записей)
- * и randomBytes(...).toString('base64url') (токен API агента). В браузере — Web Crypto.
+ * node:crypto for the phone build (D57): the core needs only randomUUID (record ids)
+ * and randomBytes(...).toString('base64url') (the agent API token). In the browser — Web Crypto.
  */
 export function randomUUID(): string {
   return globalThis.crypto.randomUUID()

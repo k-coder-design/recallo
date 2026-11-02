@@ -1,5 +1,5 @@
-# Recallo: Mobile (D57, W5): при каждом push в main собирает телефонную сборку и публикует её на GitHub Pages.
-# Приложение для Mac здесь не собирается (для него — npm run install:mac / kit:mac на Mac).
+# Recallo: Mobile (D57, W5): on every push to main, builds the phone app and publishes it to GitHub Pages.
+# The Mac app is not built here (for it — npm run install:mac / kit:mac on a Mac).
 name: Publish Recallo Mobile
 
 on:
@@ -12,7 +12,7 @@ permissions:
   pages: write
   id-token: write
 
-# Одна публикация за раз; новая не прерывает начатую.
+# One publish at a time; a new one does not cancel one in progress.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -26,7 +26,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      # Без скриптов установки: Electron и сборка better-sqlite3 телефону не нужны.
+      # No install scripts: the phone does not need Electron or the better-sqlite3 build.
       - run: npm ci --ignore-scripts
       - run: npx tsc --noEmit -p tsconfig.mobile.json
       - run: npm run build:mobile

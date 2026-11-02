@@ -1,10 +1,10 @@
 /**
- * Напоминание о полной копии на телефоне (W4): автокопии там нет, и удаление Recallo с экрана «Домой»
- * удаляет данные. Время последней копии — в localStorage этого устройства: если оно пропадёт,
- * худшее, что случится, — лишнее напоминание.
+ * Full-backup reminder on the phone (W4): there is no automatic backup there, and removing Recallo from the Home Screen
+ * deletes the data. The last backup time is in this device's localStorage: if it is lost,
+ * the worst that happens is an extra reminder.
  */
 const KEY = 'lastBackupAt'
-/** Через сколько дней без копии напоминать. */
+/** After how many days without a backup to remind. */
 export const BACKUP_REMIND_DAYS = 7
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -22,17 +22,17 @@ export function markBackedUp(): void {
   try {
     window.localStorage.setItem(KEY, new Date().toISOString())
   } catch {
-    // Хранилище недоступно — просто напомним ещё раз.
+    // Storage is unavailable — we will simply remind again.
   }
 }
 
-/** Копии не было или она старше BACKUP_REMIND_DAYS дней. */
+/** There was no backup, or it is older than BACKUP_REMIND_DAYS days. */
 export function backupOverdue(now = Date.now()): boolean {
   const last = lastBackupAt()
   return !last || now - last.getTime() > BACKUP_REMIND_DAYS * DAY_MS
 }
 
-/** «today», «yesterday», «9 days ago» — для напоминания и Settings. */
+/** "today", "yesterday", "9 days ago" — for the reminder and Settings. */
 export function backupAge(now = Date.now()): string | null {
   const last = lastBackupAt()
   if (!last) return null

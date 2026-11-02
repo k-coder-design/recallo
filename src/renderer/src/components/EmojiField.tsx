@@ -6,9 +6,9 @@ interface Props {
   spaceId: SpaceId
   term: string
   meaning: string
-  /** Выбранное пользователем эмодзи (null — без эмодзи); игнорируется, пока auto = true. */
+  /** The emoji chosen by the user (null — no emoji); ignored while auto = true. */
   value: string | null
-  /** Пока пользователь не выбирал, эмодзи подбирается автоматически по слову и значению (D27). */
+  /** Until the user chooses, the emoji is picked automatically from the word and meaning (D27). */
   auto: boolean
   onChange: (emoji: string | null) => void
 }
@@ -78,7 +78,7 @@ export function EmojiField({ spaceId, term, meaning, value, auto, onChange }: Pr
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search: rain, кот, corazón…"
+              placeholder="Search: rain, cat, corazón…"
               aria-label="Search emoji"
             />
             <button type="button" className="button" onClick={() => onChange(null)} disabled={!auto && current === null}>

@@ -17,7 +17,7 @@ import type { Clock } from './scheduler'
 import type { SetService } from './sets'
 import { scopeSchema, spaceIdSchema } from './validation'
 
-/** Таблицы полной копии в порядке вставки (сначала те, на которые ссылаются). Настройки и токен не входят. */
+/** Full-backup tables in insertion order (referenced ones first). Settings and the token are not included. */
 const BACKUP_TABLES = ['sets', 'cards', 'examples', 'card_progress', 'review_log'] as const
 
 interface Evaluated {
@@ -26,8 +26,8 @@ interface Evaluated {
 }
 
 /**
- * Импорт и экспорт словаря (MVP-4): CSV/JSON Recallo, экспорт DuoCards и Quizlet на входе;
- * полная копия с прогрессом и историей — для резервного копирования и переноса.
+ * Dictionary import and export (MVP-4): Recallo CSV/JSON, DuoCards and Quizlet exports as input;
+ * a full backup with progress and history — for backing up and moving.
  */
 export class TransferService {
   constructor(
@@ -37,7 +37,7 @@ export class TransferService {
     private readonly now: Clock
   ) {}
 
-  /** Предпросмотр: что будет добавлено, что пропущено как дубль и где ошибки — до изменения данных. */
+  /** Preview: what will be added, what is skipped as a duplicate and where the errors are — before changing data. */
   preview(content: string, options: ImportOptions): ImportPreview {
     const { format, evaluated } = this.evaluate(content, options)
     const count = (status: ImportRow['status']) => evaluated.filter((e) => e.row.status === status).length
@@ -49,7 +49,7 @@ export class TransferService {
     }
   }
 
-  /** Импорт: создаёт новые карточки, дубли пропускает (если не просили иначе), ошибки не скрывает. */
+  /** Import: creates new cards, skips duplicates (unless asked otherwise), does not hide errors. */
   import(content: string, options: ImportOptions): ImportResult {
     const { evaluated } = this.evaluate(content, options)
     const spaceId = spaceIdSchema.parse(options.spaceId)
@@ -121,7 +121,7 @@ export class TransferService {
     return { format, evaluated }
   }
 
-  /** Словарь языка или набора в CSV/JSON — для переноса и обмена (без прогресса). */
+  /** A language or set dictionary in CSV/JSON — for moving and sharing (without progress). */
   exportDictionary(spaceId: SpaceId, scope: SetScope | undefined, format: ExportFormat): { filename: string; content: string } {
     const id = spaceIdSchema.parse(spaceId)
     const parsedScope = scopeSchema.parse(scope)
@@ -136,7 +136,7 @@ export class TransferService {
       : { filename: `${base}.json`, content: toRecalloJson(id, cards, sets, this.now().toISOString()) }
   }
 
-  /** Полная копия: наборы, карточки, примеры, прогресс и история ответов. */
+  /** A full backup: sets, cards, examples, progress and answer history. */
   backup(): { filename: string; content: string } {
     const data = Object.fromEntries(BACKUP_TABLES.map((table) => [table, this.db.prepare(`SELECT * FROM ${table}`).all()]))
     const exportedAt = this.now().toISOString()
@@ -148,7 +148,7 @@ export class TransferService {
     return { filename: `Recallo backup ${exportedAt.slice(0, 10)}.json`, content: `${content}\n` }
   }
 
-  /** Что внутри копии — для подтверждения перед восстановлением. */
+  /** What is inside a backup — for the confirmation before restoring. */
   inspectBackup(content: string): BackupSummary {
     const backup = this.parseBackup(content)
     return {
@@ -160,8 +160,8 @@ export class TransferService {
   }
 
   /**
-   * Восстановление: заменяет все наборы, карточки, прогресс и историю данными из копии.
-   * Перед вызовом текущую базу нужно сохранить (это делает main-процесс).
+   * Restore: replaces all sets, cards, progress and history with the backup data.
+   * Before calling, the current database must be saved (the main process does that).
    */
   restore(content: string): BackupSummary {
     const backup = this.parseBackup(content)
@@ -169,7 +169,7 @@ export class TransferService {
       this.db.prepare('DELETE FROM cards').run()
       this.db.prepare('DELETE FROM sets').run()
       for (const table of BACKUP_TABLES) {
-        // Копия из более старой версии: берём только существующие колонки, новые получают значения по умолчанию.
+        // A backup from an older version: take only existing columns; new ones get default values.
         const columns = new Set((this.db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>).map((c) => c.name))
         for (const row of backup.data[table] ?? []) {
           const keys = Object.keys(row).filter((k) => columns.has(k))

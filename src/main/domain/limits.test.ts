@@ -6,10 +6,10 @@ import { expectCard, expectIntro, MINUTE, setup, type TestContext } from './test
 const DAY = 24 * 60 * MINUTE
 
 function addCards(t: TestContext, count: number, spaceId: 'en' | 'es' = 'en', setId?: string) {
-  for (let i = 0; i < count; i++) t.addCard({ spaceId, term: `word${spaceId}${i}`, meaning: `значение ${i}`, ...(setId ? { setId } : {}) })
+  for (let i = 0; i < count; i++) t.addCard({ spaceId, term: `word${spaceId}${i}`, meaning: `meaning ${i}`, ...(setId ? { setId } : {}) })
 }
 
-/** Знакомится с новыми словами, пока они идут; возвращает, сколько знакомств прошло. */
+/** Meets new words while they keep coming; returns how many meetings happened. */
 function meetAll(t: TestContext, spaceId: 'en' | 'es' = 'en', scope?: { kind: 'set'; setId: string }): number {
   let met = 0
   for (;;) {
@@ -21,8 +21,8 @@ function meetAll(t: TestContext, spaceId: 'en' | 'es' = 'en', scope?: { kind: 's
   }
 }
 
-describe('Лимит новых слов в день (MVP-7)', () => {
-  it('по умолчанию 10 знакомств в день, остальные новые ждут', () => {
+describe('Daily new-word limit (MVP-7)', () => {
+  it('by default 10 meetings a day, the other new words wait', () => {
     const t = setup()
     addCards(t, 12)
     expect(t.study.counts('en')).toMatchObject({ new: 10, newWaiting: 2, newToday: { limit: DEFAULT_NEW_PER_DAY, started: 0, remaining: 10 } })
@@ -30,17 +30,17 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     expect(t.study.counts('en')).toMatchObject({ new: 0, newWaiting: 2, newToday: { started: 10, remaining: 0 } })
   })
 
-  it('повторения лимит не ограничивает', () => {
+  it('the limit does not restrict reviews', () => {
     const t = setup()
     addCards(t, 12)
     meetAll(t)
     t.advance(MINUTE)
-    // Все 10 знакомых слов доступны для вспоминания, хотя лимит новых исчерпан.
+    // All 10 met words are available for recall, even though the new-word limit is reached.
     expect(t.study.counts('en').due).toBe(10)
     expect(expectCard(t.study.next('en')).mode).toBe('recall')
   })
 
-  it('«Learn 5 more today» добавляет ровно 5 знакомств и только на сегодня', () => {
+  it('"Learn 5 more today" adds exactly 5 meetings and only for today', () => {
     const t = setup()
     addCards(t, 20)
     meetAll(t)
@@ -50,7 +50,7 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     expect(t.limits.today('en')).toMatchObject({ extra: 0, started: 0, remaining: 10 })
   })
 
-  it('на следующий день лимит снова полный', () => {
+  it('the next day the limit is full again', () => {
     const t = setup()
     addCards(t, 25)
     meetAll(t)
@@ -58,7 +58,7 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     expect(t.study.counts('en')).toMatchObject({ new: 10, newWaiting: 5 })
   })
 
-  it('отмена знакомства возвращает слово в лимит', () => {
+  it('undoing a meeting returns the word to the limit', () => {
     const t = setup()
     addCards(t, 12)
     for (let i = 0; i < 9; i++) meetOne(t)
@@ -68,7 +68,7 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     expect(t.limits.today('en')).toMatchObject({ started: 9, remaining: 1 })
   })
 
-  it('отложенное «Not yet» занимает место в лимите и продолжается, даже когда лимит исчерпан', () => {
+  it('a postponed "Not yet" takes a place in the limit and continues even when the limit is reached', () => {
     const t = setup()
     t.limits.setNewPerDay('en', 2)
     addCards(t, 5)
@@ -76,16 +76,16 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     t.study.reveal(first.presentationId)
     t.study.grade(first.presentationId, 'forgot') // Not yet
     expect(t.limits.today('en')).toMatchObject({ started: 1, remaining: 1 })
-    meetOne(t) // второе слово — лимит исчерпан
+    meetOne(t) // the second word — the limit is reached
     expect(t.study.counts('en')).toMatchObject({ new: 1, newWaiting: 3 })
     t.advance(MINUTE)
-    // Сначала вспоминание второго слова (порядок очереди D21), затем повтор отложенного знакомства.
+    // First the recall of the second word (queue order D21), then the repeated postponed meeting.
     t.answer('remembered')
     const retry = expectIntro(t.study.next('en'))
     expect(retry.cardId).toBe(first.cardId)
   })
 
-  it('лимит общий для языка при обучении по наборам и независимый между языками', () => {
+  it('the limit is shared within a language when studying by sets and independent between languages', () => {
     const t = setup()
     const a = t.sets.create({ spaceId: 'en', name: 'A' })
     const b = t.sets.create({ spaceId: 'en', name: 'B' })
@@ -97,7 +97,7 @@ describe('Лимит новых слов в день (MVP-7)', () => {
     expect(t.study.counts('es')).toMatchObject({ new: 3, newToday: { remaining: 10 } })
   })
 
-  it('0 — только повторения; настройка проверяется', () => {
+  it('0 — reviews only; the setting is validated', () => {
     const t = setup()
     addCards(t, 3)
     t.limits.setNewPerDay('en', 0)

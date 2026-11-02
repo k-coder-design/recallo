@@ -36,18 +36,18 @@ import { CardEditor } from './CardEditor'
 
 interface Props {
   spaceId: SpaceId
-  /** Прогресс изменился — обновить общие счётчики языка (бейдж у вкладки Study); counts — уже известные. */
+  /** Progress changed — refresh the language's shared counters (the Study tab badge); counts — already known. */
   onProgress: (counts?: StudyCounts) => void
   onGoToCards: () => void
-  /** Сессия началась или закончилась — на телефоне App прячет шапку и вкладки (W2). */
+  /** A session started or ended — on the phone App hides the header and tabs (W2). */
   onSessionChange?: (active: boolean) => void
 }
 
-/** Стрелки — подсказка клавиш ← / →; на телефоне клавиш нет, направление объясняет подсказка про смахивание. */
+/** Arrows hint at the ← / → keys; a phone has no keys, so the swipe hint explains the direction. */
 const arrowLeft = IS_PHONE ? '' : '← '
 const arrowRight = IS_PHONE ? '' : ' →'
 
-/** Подсказка уточнить определение появляется у слов, которые часто забывают (SRS-12). */
+/** The "clarify the definition" hint appears on words that are often forgotten (SRS-12). */
 const FORGOT_HINT_THRESHOLD = 3
 
 const scopeKey = (scope: SetScope) => (scope.kind === 'set' ? `set:${scope.setId}` : scope.kind)
@@ -56,13 +56,13 @@ const scopeFromKey = (key: string): SetScope =>
 
 type Phase = 'idle' | 'session' | 'timeup' | 'summary'
 
-/** Способ ответа при вспоминании (MVP-8): самооценка или ввод слова. */
+/** How to answer in recall (MVP-8): self-check or typing the word. */
 const ANSWER_MODES = ['self', 'type'] as const
 type AnswerMode = (typeof ANSWER_MODES)[number]
 
 const LENGTH_LABELS: Record<SessionLength, string> = { off: 'No limit', '5': '5 min', '10': '10 min', '15': '15 min' }
 
-/** Текущее время, обновляемое раз в полсекунды, пока идёт отсчёт. */
+/** The current time, updated every half second while the countdown runs. */
 function useNow(active: boolean): number {
   const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
@@ -76,7 +76,7 @@ function useNow(active: boolean): number {
 
 const EMPTY_STATS = { introduced: 0, remembered: 0, forgot: 0 }
 
-/** Подписи вспоминания. У знакомства самооценки нет — только «дальше» (D53). */
+/** Recall labels. A first meeting has no self-grading — only "next" (D53). */
 const RECALL_TEXT = {
   reveal: 'Show answer',
   left: 'Forgot',
@@ -86,25 +86,25 @@ const RECALL_TEXT = {
 } as const
 const MEETING_LABELS = { left: 'Next', right: 'Next' }
 
-/** Половина переворота карточки: столько лицевая сторона уходит «ребром», пока готовится оборот. */
+/** Half of the card flip: how long the front turns edge-on while the back is prepared. */
 const FLIP_HALF_MS = 180
-/** Уход прочитанного нового слова со стола — длительность анимации .leave-* в styles.css. */
+/** The read new word leaving the table — the duration of the .leave-* animation in styles.css. */
 const LEAVE_MS = 200
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
-/** Пауза, пока идёт анимация; без анимации — сразу. */
+/** Pause while the animation runs; without animation — immediately. */
 const motionPause = (ms: number) =>
   new Promise<void>((resolve) => window.setTimeout(resolve, reducedMotion() ? 0 : ms))
 
 type Flip = { presentationId: string; phase: 'out' | 'in' }
 type Direction = 'left' | 'right'
 /**
- * Смена карточки после нового слова: следующее новое слово «сдаётся» справа, как из колоды (deal),
- * а вспоминание поднимается снизу — видно, что начинается проверка (rise).
+ * Card change after a new word: the next new word is "dealt" from the right, like from a deck (deal),
+ * and a recall rises from below — it shows that a check is starting (rise).
  */
 type Enter = { presentationId: string; kind: 'deal' | 'rise' }
 
-/** Оборот, который показывается сразу: у знакомства это вся карточка. */
+/** The back shown right away: for a first meeting it is the whole card. */
 const backOf = (next: NextCard): CardBack | null => (next.kind === 'card' && next.mode === 'intro' ? next.back : null)
 
 export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }: Props) {
@@ -129,13 +129,13 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
   const [flip, setFlip] = useState<Flip | null>(null)
   const [leaving, setLeaving] = useState<{ presentationId: string; direction: Direction } | null>(null)
   const [entering, setEntering] = useState<Enter | null>(null)
-  /** Следующая карточка идёт сразу после нового слова — ей нужна анимация появления. */
+  /** The next card comes right after a new word — it needs an entrance animation. */
   const afterMeeting = useRef(false)
-  // Время нужно странице только в ожидании; обратный отсчёт в шапке тикает в SessionClock, не трогая карточку.
+  // The page needs the time only while waiting; the header countdown ticks in SessionClock without touching the card.
   const now = useNow(phase === 'session' && timer !== null && current?.kind === 'wait')
   const busy = useRef(false)
   const lastCardId = useRef<string | undefined>(undefined)
-  /** Лимит новых исчерпан, и выбрано «повторять текущие»: до конца сессии карточки идут без ожидания (D55). */
+  /** New-word limit reached and "practice current" chosen: cards come without waiting until the session ends (D55). */
   const practicing = useRef(false)
 
   useEffect(() => {
@@ -147,13 +147,13 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     call('sets.list', spaceId)
       .then((list) => {
         setSets(list)
-        // Выбранный набор могли удалить — тогда учим все карточки языка.
+        // The chosen set may have been deleted — then study all cards of the language.
         setScope((s) => (s.kind === 'set' && !list.some((set) => set.id === s.setId) ? { kind: 'all' } : s))
       })
       .catch(() => setSets([]))
   }, [spaceId])
 
-  // Волна дня пересчитывается на стартовом экране и после сессии.
+  // Today's swell is recalculated on the start screen and after a session.
   useEffect(() => {
     if (phase === 'session') return
     call('stats.overview', spaceId)
@@ -177,7 +177,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
           scope,
           avoidCardId: lastCardId.current,
           allowEarly: allowEarly || practicing.current,
-          // Новые слова не подряд: после знакомства — другая карточка, если она есть (D56).
+          // New words not back to back: after a first meeting — another card, if there is one (D56).
           afterNew: afterMeeting.current
         })
         setBack(backOf(next))
@@ -186,7 +186,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
           setEntering({ presentationId: next.presentationId, kind: next.mode === 'intro' ? 'deal' : 'rise' })
         }
         setCounts(next.counts)
-        // Счётчики всего языка уже пришли вместе с карточкой — второй запрос не нужен.
+        // The whole language's counters already came with the card — no second request needed.
         onProgress(scope.kind === 'all' ? next.counts : undefined)
       } catch (e) {
         setError(errorMessage(e))
@@ -198,7 +198,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     [spaceId, scope, onProgress]
   )
 
-  /** Правка карточки посреди сессии: доступна, когда слово уже видно (знакомство или оборот). */
+  /** Editing a card mid-session: available once the word is visible (first meeting or back side). */
   const openEditor = useCallback(async () => {
     if (current?.kind !== 'card') return
     try {
@@ -213,7 +213,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
       setEditing(null)
       if (current?.kind !== 'card') return
       try {
-        // Показ ещё действителен: перечитываем оборот (у знакомства — всю карточку) с новым содержимым.
+        // The presentation is still valid: re-read the back (for a first meeting — the whole card) with the new content.
         if (back) setBack(await call('study.reveal', current.presentationId))
       } catch (e) {
         if (e instanceof ApiError && e.code === 'PRESENTATION_EXPIRED') return void loadNext()
@@ -233,7 +233,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     void loadNext()
   }
 
-  /** «Learn 5 more today»: разово увеличить лимит новых слов (D48); в сессии сразу показать следующее слово. */
+  /** "Learn 5 more today": raise the new-word limit once (D48); in a session, show the next word right away. */
   const learnMore = async (continueSession: boolean) => {
     setError(null)
     try {
@@ -246,13 +246,13 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     }
   }
 
-  /** Лимит новых исчерпан, а время ещё есть: повторять уже начатые слова, не дожидаясь их срока (D55). */
+  /** New-word limit reached but time is left: practice the words already started without waiting for them to be due (D55). */
   const practiceCurrent = () => {
     practicing.current = true
     void loadNext()
   }
 
-  /** Время вышло: текущая карточка уже оценена, показываем итог с вариантами завершить или продлить (D43). */
+  /** Time is up: the current card is already graded; show the summary with options to finish or extend (D43). */
   const timeUp = useCallback(() => {
     setPhase('timeup')
     setCurrent(null)
@@ -265,24 +265,24 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     void loadNext()
   }
 
-  // Пока ждём короткого повторения, оценивать нечего — итог показываем сразу.
+  // While waiting for a short review there is nothing to grade — show the summary right away.
   useEffect(() => {
     if (phase === 'session' && current?.kind === 'wait' && isTimeUp(timer, now)) timeUp()
   }, [phase, current, timer, now, timeUp])
 
-  // Завершить можно в любой момент: все оценки уже сохранены (LEARN-09).
+  // A session can be finished at any time: all grades are already saved (LEARN-09).
   const finish = useCallback(() => {
     setPhase('summary')
     setCurrent(null)
     setBack(null)
   }, [])
 
-  // Новый показ — новая проверка ответа.
+  // A new presentation means a new answer check.
   useEffect(() => setCheck(null), [current])
 
-  /** Первая встреча со словом: всё видно сразу, оценивать нечего (D53). */
+  /** First meeting with a word: everything is visible at once, nothing to grade (D53). */
   const meeting = current?.kind === 'card' && current.mode === 'intro'
-  /** Вспоминание в режиме ввода: вместо «Show answer» — поле для слова (D50). */
+  /** Recall in typing mode: a field for the word instead of "Show answer" (D50). */
   const typing = answerMode === 'type' && current?.kind === 'card' && current.mode === 'recall'
 
   const submitAnswer = useCallback(
@@ -308,7 +308,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     [current, back, loadNext]
   )
 
-  /** Переворот (D53): лицевая сторона уходит ребром, пока main-процесс готовит оборот, затем оборот доворачивается. */
+  /** Flip (D53): the front turns edge-on while the main process prepares the back, then the back turns in. */
   const reveal = useCallback(async () => {
     if (current?.kind !== 'card' || back || busy.current || typing) return
     busy.current = true
@@ -328,13 +328,13 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     }
   }, [current, back, loadNext, typing])
 
-  /** direction — куда уходит прочитанное новое слово: туда, куда его смахнули, иначе влево. */
+  /** direction — where the read new word leaves: where it was swiped, otherwise left. */
   const grade = useCallback(
     async (value: Grade, direction: Direction = 'left') => {
       if (current?.kind !== 'card' || !back || busy.current) return
       busy.current = true
       const meetingDone = current.mode === 'intro'
-      // Новое слово уходит со стола, пока main-процесс записывает знакомство.
+      // The new word leaves the table while the main process records the meeting.
       if (meetingDone) setLeaving({ presentationId: current.presentationId, direction })
       try {
         const [result] = await Promise.all([
@@ -364,8 +364,8 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
   )
 
   /**
-   * Удаление карточки посреди сессии: вместе с прогрессом и историей, как в Cards, затем — следующая карточка.
-   * Отмена последней оценки этой карточки после удаления невозможна — её кнопка скрывается.
+   * Deleting a card mid-session: together with its progress and history, as in Cards, then the next card.
+   * Undoing this card's last grade is impossible after deletion — its button is hidden.
    */
   const deleteCurrent = useCallback(async () => {
     if (current?.kind !== 'card' || busy.current) return
@@ -384,7 +384,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     await loadNext()
   }, [current, loadNext])
 
-  /** Отмена последней оценки: прогресс возвращается, карточка показывается снова. */
+  /** Undo the last grade: progress is restored, the card is shown again. */
   const undo = useCallback(async () => {
     if (!lastGrade || busy.current) return
     busy.current = true
@@ -412,7 +412,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
   }, [lastGrade, scope, onProgress])
 
   useEffect(() => {
-    // Пока открыт редактор или подтверждение удаления, клавиши принадлежат им: Esc закрывает окно, а не сессию.
+    // While the editor or delete confirmation is open, keys belong to them: Esc closes the dialog, not the session.
     if (phase !== 'session' || editing || confirmingDelete) return
     const onKey = (event: KeyboardEvent) => {
       const target = event.target
@@ -421,13 +421,13 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
         event.preventDefault()
         void undo()
       } else if (meeting) {
-        // Знакомство: любая «следующая» клавиша идёт дальше; «не помню» здесь нет.
+        // First meeting: any "next" key moves on; there is no "don't remember" here.
         if (event.key === ' ' || event.key === 'Enter' || event.key === 'ArrowRight') {
           event.preventDefault()
           void grade('remembered')
         } else if (event.key === 'Escape') finish()
       } else if (event.key === 'Enter' && check) {
-        // Режим ввода: Enter принимает оценку, предложенную приложением.
+        // Typing mode: Enter accepts the grade suggested by the app.
         event.preventDefault()
         void grade(check.suggestedGrade)
       } else if (event.key === ' ' || event.key === 'Enter') {
@@ -597,7 +597,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
     scope.kind === 'none' ? 'No set' : scope.kind === 'set' ? (sets.find((s) => s.id === scope.setId)?.name ?? 'Set') : ''
   return (
     <section className="page study">
-      {/* Шапка сессии — одна строка: длинное имя набора обрезается, кнопки не сжимаются. */}
+      {/* Session bar — one line: a long set name is cut, buttons don't shrink. */}
       <div className="study-bar">
         <div className="study-bar-info">
           {scope.kind !== 'all' && (
@@ -686,7 +686,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
               {typing && !back && <AnswerInput key={current.presentationId} onSubmit={(answer) => void submitAnswer(answer)} />}
               <div className="study-actions">
                 {back && check ? (
-                  // Решение за пользователем в обе стороны: предложенная оценка — крупно, обратная — рядом.
+                  // The user decides either way: the suggested grade is large, the opposite one is next to it.
                   check.suggestedGrade === 'remembered' ? (
                     <>
                       <button type="button" className="button forgot override" onClick={() => void grade('forgot')}>
@@ -794,7 +794,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
           }
         >
           <p>
-            {/* На лицевой стороне вспоминания слово не называем — это подсказка к ответу. */}
+            {/* On the recall front we don't name the word — it would give away the answer. */}
             {back ? `“${back.term}”` : 'This card'} will be deleted together with its progress and review history.
             This cannot be undone.
           </p>
@@ -813,7 +813,7 @@ export function StudyPage({ spaceId, onProgress, onGoToCards, onSessionChange }:
   )
 }
 
-/** Обратный отсчёт сессии: тикает сам, чтобы раз в полсекунды не перерисовывать карточку. */
+/** Session countdown: ticks on its own so the card isn't re-rendered every half second. */
 function SessionClock({ timer }: { timer: SessionTimer }) {
   const now = useNow(true)
   const over = isTimeUp(timer, now)
@@ -833,7 +833,7 @@ interface WaitProps {
   onFinish: () => void
 }
 
-/** Остались только короткие повторения: можно подождать, показать сразу или завершить (SRS-11). */
+/** Only short reviews are left: you can wait, show now, or finish (SRS-11). */
 function WaitPanel({ nextDueAt, counts, onLearnMore, onReady, onShowNow, onFinish }: WaitProps) {
   const target = new Date(nextDueAt).getTime()
   const [remaining, setRemaining] = useState(() => target - Date.now())
@@ -870,8 +870,8 @@ function WaitPanel({ nextDueAt, counts, onLearnMore, onReady, onShowNow, onFinis
 }
 
 /**
- * Телефон (W4): автокопии нет — если полной копии не было неделю, на стартовом экране Study
- * напоминание с кнопкой; копия уходит в меню «Поделиться» (Файлы, iCloud Drive).
+ * Phone (W4): there is no automatic backup — if there was no full backup for a week, the Study start screen
+ * shows a reminder with a button; the backup goes to the Share sheet (Files, iCloud Drive).
  */
 function BackupReminder() {
   const [visible, setVisible] = useState(() => backupOverdue())
@@ -905,7 +905,7 @@ function BackupReminder() {
   )
 }
 
-/** Дневной лимит новых исчерпан, а новые слова ещё ждут (D48). */
+/** The daily new-word limit is reached, but new words are still waiting (D48). */
 const limitReached = (counts: StudyCounts) => counts.newToday.remaining === 0 && counts.newWaiting > 0
 
 interface LimitChoiceProps {
@@ -915,8 +915,8 @@ interface LimitChoiceProps {
 }
 
 /**
- * Новые слова на сегодня закончились посреди сессии, а повторения ещё не наступили:
- * вместо ожидания — два пути дальше (D55). Завершить сессию можно кнопкой в шапке.
+ * New words for today ran out mid-session and no reviews are due yet:
+ * instead of waiting — two ways forward (D55). The session can be ended with the button in the bar.
  */
 function LimitChoice({ counts, onPractice, onLearnMore }: LimitChoiceProps) {
   const { started, limit, extra } = counts.newToday
@@ -940,7 +940,7 @@ function LimitChoice({ counts, onPractice, onLearnMore }: LimitChoiceProps) {
   )
 }
 
-/** Сколько новых слов сегодня уже начато и что делать, когда дневной лимит исчерпан (MVP-7, D48). */
+/** How many new words were started today and what to do when the daily limit is reached (MVP-7, D48). */
 function NewToday({ counts, onLearnMore }: { counts: StudyCounts; onLearnMore: () => void }) {
   const { started, limit, extra, remaining } = counts.newToday
   if (remaining === 0 && counts.newWaiting > 0) {

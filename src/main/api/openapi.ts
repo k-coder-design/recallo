@@ -1,4 +1,4 @@
-/** Описание REST API в формате OpenAPI 3.1 с примерами (API-09). */
+/** REST API description in OpenAPI 3.1 format with examples (API-09). Example meanings follow the user's style: Russian, then an English definition. */
 export function buildOpenApi(version: string) {
   const ref = (name: string) => ({ $ref: `#/components/schemas/${name}` })
   const json = (schema: unknown, example?: unknown) => ({

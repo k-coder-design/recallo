@@ -1,8 +1,8 @@
 import type { Swell, SwellLabel } from '../../shared/types'
 
-/** Сколько последних дней (включая сегодня) учитывается для регулярности. */
+/** How many recent days (including today) count for regularity. */
 export const SWELL_WINDOW_DAYS = 7
-/** Сколько ответов вспоминания нужно, чтобы точность начала влиять на волну. */
+/** How many recall answers are needed before accuracy affects the wave. */
 export const SWELL_MIN_RECALLS = 5
 
 const MIN_HEIGHT = 0.3
@@ -17,23 +17,23 @@ const LABELS: [number, SwellLabel][] = [
 ]
 
 export interface SwellInput {
-  /** Дни с занятиями за последние 7 дней, включая сегодня. */
+  /** Days with study in the last 7 days, including today. */
   activeDays: number
-  /** Занимались ли сегодня. */
+  /** Whether there was study today. */
   activeToday: boolean
-  /** Сколько дней с занятиями останется в окне завтра без учёта самого завтра (день 7 дней назад выпадет). */
+  /** How many study days will remain in the window tomorrow, not counting tomorrow itself (the day 7 days ago drops out). */
   activeDaysKeptTomorrow: number
-  /** Ответы вспоминания за 14 дней. */
+  /** Recall answers over 14 days. */
   recalls: number
   remembered: number
-  /** Слова, которые уже начали учить (не New), и из них дошедшие до Familiar/Learned. */
+  /** Words already being learned (not New), and of them those that reached Familiar/Learned. */
   started: number
   mastered: number
 }
 
 /**
- * «Today's swell» (D40): высота волны, которую ученик может покорить, — от регулярности (50%),
- * точности вспоминания за 2 недели (30%) и доли освоенных слов (20%). Расписание FSRS не меняется.
+ * "Today's swell" (D40): the wave height a learner can ride — from regularity (50%),
+ * recall accuracy over 2 weeks (30%) and the share of mastered words (20%). The FSRS schedule does not change.
  */
 export function computeSwell(input: SwellInput): Swell {
   const accuracy = input.recalls >= SWELL_MIN_RECALLS ? input.remembered / input.recalls : null

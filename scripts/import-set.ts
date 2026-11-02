@@ -1,6 +1,6 @@
-// Импорт набора из JSON (data/sets/*.json) в базу Recallo: создаёт набор (или берёт существующий
-// с тем же названием) и его карточки. Дубли с уже существующими карточками пропускаются.
-// Запуск: npm run import:set -- <файл.json> [--dry-run] [--user-data <папка>]
+// Import a set from JSON (data/sets/*.json) into the Recallo database: creates the set (or uses an existing one
+// with the same name) and its cards. Duplicates of existing cards are skipped.
+// Run: npm run import:set -- <file.json> [--dry-run] [--user-data <folder>]
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
@@ -21,7 +21,7 @@ const file = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !
 const dryRun = argv.includes('--dry-run')
 const userDataIndex = argv.indexOf('--user-data')
 const userData = userDataIndex >= 0 ? (argv[userDataIndex + 1] as string) : join(homedir(), 'Library/Application Support/Recallo')
-if (!file) throw new Error('Укажите путь к JSON-файлу набора')
+if (!file) throw new Error('Pass the path to the set JSON file')
 
 const data = JSON.parse(readFileSync(file, 'utf8')) as SetFile
 const db = openDatabase(dryRun ? ':memory:' : join(userData, 'recallo.sqlite'))
@@ -37,7 +37,7 @@ const unmasked: string[] = []
 for (const card of data.cards) {
   const duplicates = cards.findDuplicates(data.spaceId, card.term)
   if (duplicates.length > 0) {
-    skipped.push(`${card.term} (уже есть: ${duplicates.map((d) => d.term).join(', ')})`)
+    skipped.push(`${card.term} (already exists: ${duplicates.map((d) => d.term).join(', ')})`)
     continue
   }
   for (const example of card.examples ?? []) {
@@ -57,6 +57,6 @@ for (const card of data.cards) {
 }
 db.close()
 
-console.log(`${dryRun ? '[dry-run] ' : ''}Набор «${set.name}»: добавлено ${created.length}, пропущено как дубли ${skipped.length}`)
-if (skipped.length) console.log(`Дубли: ${skipped.join('; ')}`)
-console.log(`Примеров, где слово не нашлось для скрытия: ${unmasked.length}${unmasked.length ? `\n  ${unmasked.join('\n  ')}` : ''}`)
+console.log(`${dryRun ? '[dry-run] ' : ''}Set "${set.name}": added ${created.length}, skipped as duplicates ${skipped.length}`)
+if (skipped.length) console.log(`Duplicates: ${skipped.join('; ')}`)
+console.log(`Examples where the word was not found for hiding: ${unmasked.length}${unmasked.length ? `\n  ${unmasked.join('\n  ')}` : ''}`)

@@ -1,6 +1,6 @@
 /**
- * Нормализация выражения для поиска дублей: «To embrace!» и «embrace» — одно слово,
- * «¡Hola!» и «hola» — тоже. Варианты через « / » сравниваются по отдельности.
+ * Normalizing an expression for duplicate search: "To embrace!" and "embrace" are one word,
+ * so are "¡Hola!" and "hola". Variants split by " / " are compared separately.
  */
 export function termKeys(term: string): string[] {
   return term

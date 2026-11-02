@@ -13,15 +13,16 @@ const codeOf = (fn: () => unknown) => {
   return undefined
 }
 
-describe('форматы импорта', () => {
-  it('определяет формат по содержимому', () => {
+// Sample data is in Russian on purpose: the user's meanings are Russian, and files must carry them through intact.
+describe('import formats', () => {
+  it('detects the format from the content', () => {
     expect(detectFormat('{"cards": []}')).toBe('recallo-json')
     expect(detectFormat('front,back,hint,publishedAt\n"a","b","",""')).toBe('duocards')
-    expect(detectFormat('﻿term,meaning,set\nrun,бегать,')).toBe('recallo-csv')
+    expect(detectFormat('﻿term,meaning,set\nrun,to run,')).toBe('recallo-csv')
     expect(detectFormat('dramatic\tдраматичный\nthrilling\tзахватывающий')).toBe('quizlet')
   })
 
-  it('читает Quizlet «термин⇥определение» и меняет колонки местами по запросу', () => {
+  it('reads Quizlet "term⇥definition" and swaps the columns on request', () => {
     const text = 'драматичный\tdramatic\nзахватывающий\tthrilling'
     expect(parseImport(text, 'quizlet').map((c) => [c.term, c.meaning])).toEqual([
       ['драматичный', 'dramatic'],
@@ -32,8 +33,8 @@ describe('форматы импорта', () => {
   })
 })
 
-describe('импорт', () => {
-  it('показывает в предпросмотре новые слова, дубли (в базе и в файле) и ошибки, ничего не меняя', () => {
+describe('import', () => {
+  it('previews new words, duplicates (in the database and in the file) and errors without changing anything', () => {
     const t = setup()
     t.addCard({ term: 'dull', meaning: 'скучный' })
     const preview = t.transfer.preview('gripping\tзахватывающий\nDull\tскучный\ngripping\tещё раз\nhilarious\t', {
@@ -47,7 +48,7 @@ describe('импорт', () => {
     expect(t.cards.list('en')).toHaveLength(1)
   })
 
-  it('создаёт новые, пропускает дубли и сообщает об ошибках', () => {
+  it('creates new ones, skips duplicates and reports errors', () => {
     const t = setup()
     t.addCard({ term: 'dull', meaning: 'скучный' })
     const result = t.transfer.import('gripping\tзахватывающий\ndull\tскучный\nhilarious\t', {
@@ -60,7 +61,7 @@ describe('импорт', () => {
     expect(t.cards.list('en', { search: 'gripping' })[0]?.transcription).toBe('ˈɡrɪpɪŋ')
   })
 
-  it('кладёт в существующий набор, в «без набора» или в наборы из файла; дубли — по запросу', () => {
+  it('puts cards into an existing set, into "no set" or into the sets from the file; duplicates on request', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie' })
     t.transfer.import('a\tA', { spaceId: 'en', destination: { kind: 'set', setId: set.id } })
@@ -76,21 +77,21 @@ describe('импорт', () => {
     expect(byTerm).toEqual({ 'a:A': set.id, 'b:B': null, 'c:C': travel?.id, 'd:D': set.id, 'a:A again': null })
   })
 
-  it('читает экспорт DuoCards с примерами', () => {
+  it('reads a DuoCards export with examples', () => {
     const t = setup()
     const csv = 'front,back,hint,publishedAt\n"loophole","лазейка","They found a loophole.","2026-09-12T12:03:27.042Z"\n'
     expect(t.transfer.import(csv, { spaceId: 'en', destination: { kind: 'none' } }).summary.created).toBe(1)
     expect(t.cards.list('en')[0]?.examples[0]?.text).toBe('They found a loophole.')
   })
 
-  it('отказывает понятным сообщением, если в файле нет карточек или это полная копия', () => {
+  it('refuses with a clear message if the file has no cards or is a full backup', () => {
     const t = setup()
     expect(codeOf(() => t.transfer.preview('   ', { spaceId: 'en', destination: { kind: 'none' } }))).toBe('VALIDATION')
     expect(() => t.transfer.preview(t.transfer.backup().content, { spaceId: 'en', destination: { kind: 'none' } })).toThrow('full backup')
   })
 })
 
-describe('экспорт словаря', () => {
+describe('dictionary export', () => {
   function sample() {
     const t = setup()
     const movie = t.sets.create({ spaceId: 'en', name: 'Movie' })
@@ -108,7 +109,7 @@ describe('экспорт словаря', () => {
     return t
   }
 
-  it('CSV читается импортом обратно без потерь (наборы, эмодзи, примеры, кавычки, запятые)', () => {
+  it('the CSV reads back through import without loss (sets, emoji, examples, quotes, commas)', () => {
     const source = sample()
     const csv = source.transfer.exportDictionary('en', undefined, 'csv')
     expect(csv.filename).toMatch(/^Recallo English all \d{4}-\d{2}-\d{2}\.csv$/)
@@ -125,7 +126,7 @@ describe('экспорт словаря', () => {
     expect(target.sets.list('en').map((s) => s.name)).toEqual(['Movie'])
   })
 
-  it('JSON одного набора содержит только его карточки и читается обратно', () => {
+  it('a single-set JSON contains only its cards and reads back', () => {
     const source = sample()
     const movie = source.sets.list('en')[0]!
     const json = source.transfer.exportDictionary('en', { kind: 'set', setId: movie.id }, 'json')
@@ -141,8 +142,8 @@ describe('экспорт словаря', () => {
   })
 })
 
-describe('полная копия', () => {
-  it('сохраняет и восстанавливает наборы, карточки, прогресс и историю, но не токен', () => {
+describe('full backup', () => {
+  it('saves and restores sets, cards, progress and history, but not the token', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie' })
     const card = t.addCard({ setId: set.id })
@@ -163,7 +164,7 @@ describe('полная копия', () => {
     expect(t.stats.overview('en').today.forgot).toBe(1)
   })
 
-  it('не восстанавливает чужой файл и копию из более новой версии', () => {
+  it('does not restore a foreign file or a backup from a newer version', () => {
     const t = setup()
     expect(() => t.transfer.restore('{"cards": []}')).toThrow('not a Recallo backup')
     const newer = JSON.stringify({ format: 'recallo-backup', schemaVersion: 999, data: {} })

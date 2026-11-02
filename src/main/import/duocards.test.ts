@@ -3,7 +3,7 @@ import { parseCsv } from './csv'
 import { parseDuoCardsExport, splitExamples } from './duocards'
 
 describe('parseCsv', () => {
-  it('разбирает кавычки, запятые, удвоенные кавычки и переносы внутри поля', () => {
+  it('parses quotes, commas, doubled quotes and line breaks inside a field', () => {
     const csv = 'a,b\r\n"x, y","line 1\nline 2 ""quoted"""\n\n'
     expect(parseCsv(csv)).toEqual([
       ['a', 'b'],
@@ -13,20 +13,20 @@ describe('parseCsv', () => {
 })
 
 describe('splitExamples', () => {
-  it('делит подсказку на примеры и убирает нумерацию', () => {
+  it('splits the hint into examples and removes numbering', () => {
     expect(splitExamples('1) First one.\n2) Second one.')).toEqual(['First one.', 'Second one.'])
     expect(splitExamples('Only one.')).toEqual(['Only one.'])
     expect(splitExamples('')).toEqual([])
   })
 
-  it('оставляет диалог одним примером', () => {
+  it('keeps a dialog as one example', () => {
     expect(splitExamples('- ¿Cómo estás?\n- Muy bien')).toEqual(['- ¿Cómo estás?\n- Muy bien'])
     expect(splitExamples('Intro line.\n- A?\n- B')).toEqual(['Intro line.', '- A?\n- B'])
   })
 })
 
 describe('parseDuoCardsExport', () => {
-  it('превращает строки экспорта в карточки', () => {
+  it('turns export rows into cards (Russian meanings, as in real DuoCards exports)', () => {
     const csv = [
       'front,back,hint,publishedAt',
       '"loophole","лазейка","They found a loophole.","2026-09-12T12:03:27.042Z"',

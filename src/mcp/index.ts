@@ -1,5 +1,5 @@
-// MCP-сервер Recallo (stdio). Запускается бинарником Recallo с ELECTRON_RUN_AS_NODE=1,
-// поэтому агентам не нужен отдельно установленный Node. Вся логика — в API приложения.
+// Recallo MCP server (stdio). It is started by the Recallo binary with ELECTRON_RUN_AS_NODE=1,
+// so agents do not need a separately installed Node. All the logic lives in the app API.
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import pkg from '../../package.json'
 import { RecalloClient } from './client'

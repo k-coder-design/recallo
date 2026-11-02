@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Комплект для установки и обновления Recallo на другом Mac — одна папка dist/kit/Recallo-<версия>
-# (DMG для Apple Silicon и Intel, скрипт обновления, архив исходников, инструкции, контрольные суммы)
-# и она же одним файлом dist/kit/Recallo-<версия>.zip — чтобы отправить. Запуск: npm run kit:mac
+# A kit for installing and upgrading Recallo on another Mac — one folder dist/kit/Recallo-<version>
+# (DMGs for Apple Silicon and Intel, upgrade script, source archive, instructions, checksums)
+# and the same as one file dist/kit/Recallo-<version>.zip — for sending. Run: npm run kit:mac
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -12,7 +12,7 @@ KIT="dist/kit/$NAME"
 echo "▶ Building DMGs for Apple Silicon and Intel"
 rm -rf dist
 npm run release:mac
-# После сборки x64 и arm64 модуль базы в node_modules пересобран под arm64 — возвращаем под текущую архитектуру.
+# After building x64 and arm64 the database module in node_modules is built for arm64 — rebuild it for the current architecture.
 npx electron-builder install-app-deps >/dev/null
 
 mkdir -p "$KIT"
@@ -36,7 +36,7 @@ sed "s/{{VERSION}}/$VERSION/g" scripts/kit-start-here.md > "$KIT/START_HERE.md"
 (cd "$KIT" && shasum -a 256 Recallo-* upgrade-mac.sh > SHA256SUMS.txt)
 
 echo "▶ Packing the folder into one file for sending"
-# ditto сохраняет права (upgrade-mac.sh остаётся исполняемым) и пишет архив, который Finder открывает двойным кликом.
+# ditto keeps permissions (upgrade-mac.sh stays executable) and writes an archive that Finder opens with a double click.
 (cd dist/kit && ditto -c -k --keepParent "$NAME" "$NAME.zip")
 
 echo "✓ Kit is ready: $KIT (folder) and dist/kit/$NAME.zip (one file to send)"

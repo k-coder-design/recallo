@@ -23,16 +23,16 @@ import { parseProgress, serializeProgress, stateName, type Clock, type Scheduler
 import { scopeCondition } from './sets'
 import { gradeSchema, nextOptionsSchema, scopeSchema, spaceIdSchema } from './validation'
 
-/** Показ карточки в сессии. Живёт в памяти: после перезапуска показ просто запрашивается заново. */
+/** A card presentation in a session. Lives in memory: after a restart the presentation is simply requested again. */
 interface Presentation {
   cardId: string
   mode: StudyMode
   revealed: boolean
-  /** Проверка введённого ответа, если вспоминание шло в режиме ввода (D50). */
+  /** Check of the typed answer, if recall was in typing mode (D50). */
   check?: AnswerCheck
 }
 
-/** Состояние знакомства карточки — сохраняется в истории, чтобы оценку можно было отменить. */
+/** A card's meeting state — stored in history so a grade can be undone. */
 interface IntroState {
   introduced_at: string | null
   intro_due: string | null
@@ -48,18 +48,18 @@ interface ReviewRow {
 
 const MAX_OPEN_PRESENTATIONS = 500
 const MINUTE = 60_000
-/** После знакомства первое вспоминание — в той же сессии, примерно через минуту (D21). */
+/** After a meeting, the first recall comes in the same session, in about a minute (D21). */
 export const INTRO_TO_RECALL_DELAY_MS = MINUTE
-/** «Not yet» при знакомстве: показать знакомство снова через минуту, другие карточки — между. */
+/** "Not yet" on a meeting: show the meeting again in a minute, with other cards in between. */
 export const INTRO_RETRY_DELAY_MS = MINUTE
 
-/** Новая карточка без знакомства. */
+/** A new card without a meeting. */
 const NEEDS_INTRO = `p.state = ${State.New} AND p.introduced_at IS NULL`
-/** Знакомство ещё не начиналось — только такие карточки ограничивает дневной лимит (D48). */
+/** The meeting hasn't started — only these cards are limited by the daily limit (D48). */
 const FRESH = `${NEEDS_INTRO} AND p.intro_due IS NULL`
-/** Знакомство начато и отложено («Not yet») — продолжается вне зависимости от лимита. */
+/** The meeting started and was postponed ("Not yet") — it continues regardless of the limit. */
 const RETRY = `${NEEDS_INTRO} AND p.intro_due IS NOT NULL`
-/** Новая карточка после знакомства, ещё ни разу не вспоминавшаяся. */
+/** A new card after its meeting, never recalled yet. */
 const INTRODUCED = `p.state = ${State.New} AND p.introduced_at IS NOT NULL`
 const READY_NEW = `COALESCE(p.intro_due, '') <= @now`
 
@@ -74,7 +74,7 @@ export class StudyService {
     private readonly now: Clock
   ) {}
 
-  /** Счётчики области: все карточки языка, набор или «без набора» (GEN-05), с учётом дневного лимита новых (D48). */
+  /** Scope counters: all cards of the language, a set, or "no set" (GEN-05), within the daily new-word limit (D48). */
   counts(spaceId: SpaceId, scope?: SetScope): StudyCounts {
     const id = spaceIdSchema.parse(spaceId)
     const condition = scopeCondition(scopeSchema.parse(scope))
@@ -97,10 +97,10 @@ export class StudyService {
   }
 
   /**
-   * Следующая карточка пространства (LANG-03). Порядок (SRS-08, D21):
-   * наступившие повторения → первое вспоминание после знакомства → знакомство с новыми.
-   * Область (набор) только сужает выбор: прогресс карточки общий (SRS-09).
-   * После знакомства (afterNew) новая карточка уступает место другой карточке области (D56).
+   * The space's next card (LANG-03). Order (SRS-08, D21):
+   * due reviews → first recall after a meeting → meeting new cards.
+   * The scope (set) only narrows the choice: a card's progress is shared (SRS-09).
+   * After a meeting (afterNew) a new card gives way to another card in scope (D56).
    */
   next(spaceId: SpaceId, options?: NextOptions): NextCard {
     const id = spaceIdSchema.parse(spaceId)
@@ -126,11 +126,11 @@ export class StudyService {
       ...pick(`${RETRY} AND ${READY_NEW}`, 'p.intro_due, c.rowid'),
       ...(counts.newToday.remaining > 0 ? pick(FRESH, 'c.created_at, c.rowid') : [])
     ]
-    // Между повторными показами одной карточки — другие, если они есть (SRS-10).
+    // Between repeated presentations of one card — others, if there are any (SRS-10).
     let cardId = candidates.find((c) => c !== avoidCardId)
     if (afterNew && cardId !== undefined && !known.includes(cardId)) {
-      // Новые не подряд (D56): раньше срока — уже знакомые слова, которые и так скоро вернутся;
-      // в наборе — ещё и выученные слова этого набора, ближайшие к повторению.
+      // New words not back to back (D56): early — already met words that will be back soon anyway;
+      // in a set — also learned words of that set that are closest to review.
       const mixIn = pick(
         `(p.state IN (${State.Learning}, ${State.Relearning}) OR ${INTRODUCED}` +
           (scope.kind === 'set' ? ` OR p.state = ${State.Review})` : ')'),
@@ -141,8 +141,8 @@ export class StudyService {
     cardId ??= candidates[0]
 
     if (!cardId) {
-      // Остались только короткие повторы в будущем: можно подождать, показать раньше или
-      // завершить сессию — без принудительного цикла (SRS-11).
+      // Only short reviews in the future are left: you can wait, show early, or
+      // finish the session — without a forced loop (SRS-11).
       const upcoming = this.db
         .prepare(
           `SELECT c.id, CASE WHEN p.state = ${State.New} THEN p.intro_due ELSE p.due END AS at
@@ -156,7 +156,7 @@ export class StudyService {
         .all(params) as Array<{ id: string; at: string }>
       if (!upcoming[0]) return { kind: 'done', counts }
       if (!allowEarly) return { kind: 'wait', nextDueAt: upcoming[0].at, counts }
-      // Раньше срока подряд одну и ту же карточку не показываем, если есть другая (SRS-10).
+      // When showing early, don't show the same card twice in a row if there is another (SRS-10).
       cardId = (upcoming.find((c) => c.id !== avoidCardId) ?? upcoming[0]).id
     }
 
@@ -164,9 +164,9 @@ export class StudyService {
   }
 
   /**
-   * Режим ввода (MVP-8, D50): проверяет введённое слово и раскрывает ответ. Это ещё не оценка —
-   * итоговую оценку выбирает пользователь в grade, в том числе вопреки вердикту приложения.
-   * Повторная проверка того же показа возвращает первую: ответ уже был виден.
+   * Typing mode (MVP-8, D50): checks the typed word and reveals the answer. This is not a grade yet —
+   * the user chooses the final grade in grade, even against the app's verdict.
+   * A repeated check of the same presentation returns the first one: the answer was already visible.
    */
   check(presentationId: string, answer: string): { back: CardBack; check: AnswerCheck } {
     const presentation = this.requirePresentation(presentationId)
@@ -181,14 +181,14 @@ export class StudyService {
     return { back: this.reveal(presentationId), check: presentation.check }
   }
 
-  /** Раскрытие ответа само по себе не считается повторением (LEARN-07). */
+  /** Revealing the answer by itself does not count as a review (LEARN-07). */
   reveal(presentationId: string): CardBack {
     const presentation = this.requirePresentation(presentationId)
     presentation.revealed = true
     return this.backOf(this.cards.get(presentation.cardId))
   }
 
-  /** Полное содержимое карточки: слово, произношение, значение и примеры с выделенным словом. */
+  /** The card's full content: word, pronunciation, meaning and examples with the word highlighted. */
   private backOf(card: Card): CardBack {
     return {
       term: card.term,
@@ -206,9 +206,9 @@ export class StudyService {
   }
 
   /**
-   * Записывает результат показа. Повторная отправка для того же показа возвращает
-   * уже сохранённый результат и ничего не меняет (LEARN-10, GEN-03).
-   * Знакомство не трогает FSRS: оно только открывает карточку для вспоминания.
+   * Records the result of a presentation. Resubmitting for the same presentation returns
+   * the already saved result and changes nothing (LEARN-10, GEN-03).
+   * A meeting doesn't touch FSRS: it only opens the card for recall.
    */
   grade(presentationId: string, grade: Grade): GradeResult {
     const parsedGrade = gradeSchema.parse(grade)
@@ -219,7 +219,7 @@ export class StudyService {
           'SELECT id, card_id, mode, grade, progress_after, undone_at FROM review_log WHERE presentation_id = ?'
         )
         .get(presentationId) as (ReviewRow & { undone_at: string | null }) | undefined
-      // Отменённую оценку повторно не применяем: показ закончился, карточка показана заново.
+      // An undone grade is not applied again: the presentation is over, the card was shown again.
       if (existing?.undone_at) throw new DomainError('PRESENTATION_EXPIRED', 'This grade was undone. Load the next card.')
       if (existing) return this.existingResult(existing)
 
@@ -285,9 +285,9 @@ export class StudyService {
   }
 
   /**
-   * Отменяет последнюю оценку карточки: прогресс и знакомство возвращаются как были,
-   * запись истории помечается отменённой, карточка показывается снова.
-   * Повторная отмена той же записи ничего не меняет.
+   * Undoes the card's last grade: progress and meeting state return to what they were,
+   * the history record is marked undone, the card is shown again.
+   * Undoing the same record again changes nothing.
    */
   undo(reviewId: string, scope?: SetScope): UndoResult {
     const parsedScope = scopeSchema.parse(scope)
@@ -312,7 +312,7 @@ export class StudyService {
         }
 
         this.cards.writeProgress(row.card_id, parseProgress(row.progress_before))
-        // Для записей до появления intro_before: отмена знакомства возвращает карточку к знакомству.
+        // For records from before intro_before existed: undoing a meeting returns the card to the meeting.
         const intro: IntroState | null = row.intro_before
           ? (JSON.parse(row.intro_before) as IntroState)
           : row.mode === 'intro'
@@ -331,7 +331,7 @@ export class StudyService {
     })()
   }
 
-  /** Сколько раз карточку забывали при вспоминании (без отменённых оценок). */
+  /** How many times the card was forgotten in recall (without undone grades). */
   private forgotCount(cardId: string): number {
     return this.db
       .prepare(
@@ -371,7 +371,7 @@ export class StudyService {
       const oldest = this.presentations.keys().next().value
       if (oldest !== undefined) this.presentations.delete(oldest)
     }
-    // Знакомство показывает всё сразу (D53): угадывать нечего, поэтому показ уже раскрыт.
+    // A meeting shows everything at once (D53): nothing to guess, so the presentation is already revealed.
     this.presentations.set(presentationId, { cardId, mode, revealed: mode === 'intro' })
 
     if (mode === 'intro') {

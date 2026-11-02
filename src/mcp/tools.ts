@@ -22,7 +22,7 @@ interface ApiCard {
   version: number
 }
 
-/** Язык: принимаем и код, и название — агенту так проще. */
+/** Language: accept both a code and a name — easier for an agent. */
 const language = z
   .preprocess((value) => {
     const v = String(value ?? '').trim().toLowerCase()
@@ -38,7 +38,7 @@ const exampleInput = z.object({
 
 const text = (value: unknown) => ({ content: [{ type: 'text' as const, text: typeof value === 'string' ? value : JSON.stringify(value, null, 2) }] })
 
-/** Ошибки API и недоступность Recallo превращаются в понятный агенту ответ инструмента. */
+/** API errors and Recallo being unavailable become a tool answer the agent understands. */
 async function run(action: () => Promise<unknown>) {
   try {
     return text(await action())
@@ -67,7 +67,7 @@ export function createRecalloServer(client: RecalloClient, version: string): Mcp
 
   const listSets = (lang: string) => client.request<ApiSet[]>('GET', `/sets?language=${lang}`)
 
-  /** Набор по id, названию или "none" (без набора). */
+  /** A set by id, name or "none" (no set). */
   async function resolveSet(lang: string, ref: string | null | undefined): Promise<string | null | undefined> {
     if (ref === undefined) return undefined
     if (ref === null || ref.trim().toLowerCase() === 'none' || ref.trim() === '') return null
@@ -137,6 +137,7 @@ export function createRecalloServer(client: RecalloClient, version: string): Mcp
       title: 'Add cards',
       description:
         'Add one or more words or phrases to Recallo (up to 200 at a time). Words that already exist are skipped and reported as duplicates. ' +
+        // The example shows the user's meaning style: a Russian translation, then an English definition.
         'Write the meaning as the user likes it, e.g. "захватывающий (so exciting you can’t stop watching)". ' +
         'Give each card one emoji that evokes its meaning (e.g. 🍿 for "gripping" about films) — Recallo’s own pick is only a rough keyword match. ' +
         'Add 1–3 natural example sentences; translate each into the same language as the meaning. ' +

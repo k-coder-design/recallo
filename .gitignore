@@ -5,5 +5,5 @@ dist/
 .DS_Store
 *.tsbuildinfo
 
-# Локальные настройки Claude Code (пути этого Mac)
+# Local Claude Code settings (paths of this Mac)
 .claude/settings.local.json

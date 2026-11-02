@@ -4,16 +4,16 @@ import type { Db } from '../db/database'
 
 export const DEFAULT_API_PORT = 47821
 
-/** Тема оформления (D49): system — как в macOS. */
+/** Appearance theme (D49): system — follows macOS. */
 export const THEMES = ['system', 'light', 'dark'] as const
 export type Theme = (typeof THEMES)[number]
 const themeSchema = z.enum(THEMES, { error: 'Choose System, Light or Dark' })
 
 export interface AutoBackupSettings {
   enabled: boolean
-  /** Время последней удачной автокопии (ISO); null — ещё не было. */
+  /** Time of the last successful automatic backup (ISO); null — none yet. */
   lastAt: string | null
-  /** Ошибка последней попытки; null — последняя попытка удалась. */
+  /** Error of the last attempt; null — the last attempt succeeded. */
   lastError: string | null
 }
 
@@ -33,7 +33,7 @@ const updateSchema = z.object({
     .optional()
 })
 
-/** Настройки приложения в таблице settings (ключ — значение). */
+/** App settings in the settings table (key — value). */
 export class SettingsService {
   constructor(private readonly db: Db) {}
 
@@ -47,7 +47,7 @@ export class SettingsService {
       .run(key, value)
   }
 
-  /** Настройки API для агентов; токен создаётся при первом обращении. По умолчанию API выключен. */
+  /** Agent API settings; the token is created on first access. The API is off by default. */
   agentApi(): AgentApiSettings {
     let token = this.read('agentApi.token')
     if (!token) {
@@ -79,7 +79,7 @@ export class SettingsService {
     return theme
   }
 
-  /** Автоматическая копия (MVP-9, D51): включена по умолчанию; время и ошибка последней попытки. */
+  /** Automatic backup (MVP-9, D51): on by default; time and error of the last attempt. */
   autoBackup(): AutoBackupSettings {
     return {
       enabled: this.read('backup.auto') !== '0',
@@ -100,7 +100,7 @@ export class SettingsService {
     } else this.write('backup.lastError', result.error)
   }
 
-  /** Новый токен: старый перестаёт работать сразу. */
+  /** A new token: the old one stops working right away. */
   regenerateToken(): AgentApiSettings {
     this.write('agentApi.token', newToken())
     return this.agentApi()

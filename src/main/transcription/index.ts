@@ -4,15 +4,15 @@ import { transcribeSpanish } from './spanish'
 import { ALT_ACCENTS } from '../../shared/accents'
 
 /**
- * Автоматическая транскрипция (IPA, без косых черт), без сети: английский — словарь CMU,
- * испанский — правила чтения. Варианты через « / » транскрибируются по отдельности.
- * null — если транскрипцию построить не удалось (её можно ввести вручную).
+ * Automatic transcription (IPA, without slashes), offline: English — the CMU dictionary,
+ * Spanish — reading rules. Variants split by " / " are transcribed separately.
+ * null — if a transcription could not be built (it can be entered manually).
  */
 export function transcribe(term: string, spaceId: SpaceId): string | null {
   return eachVariant(term, (variant) => (spaceId === 'en' ? transcribeEnglish(variant) : transcribeSpanish(variant, 'es-AR')))
 }
 
-/** Второй вариант произношения (D44): для испанского — кастильский (Испания); у английского его нет. */
+/** Second pronunciation (D44): for Spanish — Castilian (Spain); English has none. */
 export function transcribeAlt(term: string, spaceId: SpaceId): string | null {
   if (!ALT_ACCENTS[spaceId]) return null
   return eachVariant(term, (variant) => transcribeSpanish(variant, 'es-ES'))
@@ -24,7 +24,7 @@ function eachVariant(term: string, fn: (variant: string) => string | null): stri
   return variants.join(' / ')
 }
 
-/** Ручной ввод: убираем обрамляющие /…/ или […], пустое значение — «заполнить автоматически». */
+/** Manual input: strip surrounding /…/ or […]; an empty value means "fill in automatically". */
 export function normalizeTranscription(value: string | null | undefined): string | null {
   const trimmed = (value ?? '').trim().replace(/^[/[]\s*|\s*[/\]]$/g, '').trim()
   return trimmed || null

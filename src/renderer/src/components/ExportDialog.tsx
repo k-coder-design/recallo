@@ -14,11 +14,11 @@ const scopeKey = (scope: SetScope) => (scope.kind === 'set' ? `set:${scope.setId
 const scopeFromKey = (key: string): SetScope =>
   key.startsWith('set:') ? { kind: 'set', setId: key.slice(4) } : key === 'none' ? { kind: 'none' } : { kind: 'all' }
 
-/** Экспорт словаря в CSV или JSON (без прогресса) — чтобы перенести, поделиться или открыть в таблице. */
+/** Dictionary export to CSV or JSON (without progress) — to move, share or open in a spreadsheet. */
 export function ExportDialog({ spaceId, sets, scope: initialScope, onClose }: Props) {
   const [scope, setScope] = useState<SetScope>(initialScope)
   const [format, setFormat] = useState<ExportFormat>('csv')
-  /** Куда сохранён файл; '' — сохранён, но путь неизвестен (телефон: меню «Поделиться»). */
+  /** Where the file was saved; '' — saved, but the path is unknown (phone: Share sheet). */
   const [savedTo, setSavedTo] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)

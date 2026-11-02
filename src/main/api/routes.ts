@@ -6,7 +6,7 @@ import type { Services } from '../services'
 import { HttpError, type ApiRequest, type Route } from './http'
 import { buildOpenApi } from './openapi'
 
-/** Карточка для агента: содержимое и данные для скрытия слова в примерах (API-18), без прогресса и истории (API-17). */
+/** A card for an agent: content and data for hiding the word in examples (API-18), without progress or history (API-17). */
 export function cardDto(card: Card) {
   return {
     id: card.id,
@@ -88,7 +88,7 @@ const moveBody = z.object({ cardIds: z.array(z.string()).min(1).max(500), setId:
 const setCreateBody = z.object({ language: languageSchema, name: z.string(), description: z.string().nullish() })
 const setPatchBody = z.object({ version: z.number().int().optional(), name: z.string().optional(), description: z.string().nullish() })
 
-/** Версия для защиты от перезаписи (API-15): из тела или из заголовка If-Match: "3". */
+/** Version for overwrite protection (API-15): from the body or from the If-Match: "3" header. */
 function versionOf(req: ApiRequest, bodyVersion: number | undefined): number {
   if (bodyVersion !== undefined) return bodyVersion
   const header = String(req.headers['if-match'] ?? '').trim()
@@ -112,7 +112,7 @@ export function createRoutes({ cards, sets }: Services, info: { version: string 
 
     { method: 'GET', path: '/api/v1/languages', handle: () => ({ body: cards.listSpaces().map((s) => ({ id: s.id, name: s.name })) }) },
 
-    // Наборы
+    // Sets
     { method: 'GET', path: '/api/v1/sets', handle: (req) => ({ body: sets.list(requireLanguage(req)).map(setDto) }) },
     {
       method: 'POST',
@@ -145,13 +145,13 @@ export function createRoutes({ cards, sets }: Services, info: { version: string 
       }
     },
     {
-      // Политика обязательна: без неё карточки набора не удаляются неявно (SET-11).
+      // The policy is required: without it a set's cards are never deleted implicitly (SET-11).
       method: 'DELETE',
       path: '/api/v1/sets/:id',
       handle: (req) => ({ body: sets.delete(req.params['id'] as string, req.query.get('policy') ?? undefined) })
     },
 
-    // Карточки
+    // Cards
     {
       method: 'GET',
       path: '/api/v1/cards',
@@ -183,7 +183,7 @@ export function createRoutes({ cards, sets }: Services, info: { version: string 
       }
     },
     {
-      // Массовое создание: результат по каждой карточке, частичные ошибки не скрываются (API-06, API-13).
+      // Bulk creation: a result for each card, partial errors are not hidden (API-06, API-13).
       method: 'POST',
       path: '/api/v1/cards/batch',
       handle: (req) => {

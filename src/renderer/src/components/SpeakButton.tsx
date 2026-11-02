@@ -4,7 +4,7 @@ import { canSpeak, chooseVoice, speak, useVoices } from '../lib/tts'
 interface Props {
   text: string
   lang: string
-  /** Только иконка — для минималистичной стороны со словом. */
+  /** Icon only — for the minimal word side. */
   compact?: boolean
 }
 
@@ -13,7 +13,7 @@ export function SpeakButton({ text, lang, compact = false }: Props) {
   const voices = useVoices()
   if (!canSpeak()) return compact ? null : <span className="muted small">Speech is unavailable</span>
 
-  // В подсказке видно, каким голосом прозвучит слово и что голоса нужного региона нет.
+  // The tooltip shows which voice will speak the word and that the exact regional voice is missing.
   const { voice, exact } = chooseVoice(lang, voices)
   const title = failed
     ? 'Speech failed'
@@ -26,7 +26,7 @@ export function SpeakButton({ text, lang, compact = false }: Props) {
       type="button"
       className={compact ? 'speak-icon' : 'button ghost'}
       onClick={() => setFailed(!speak(text, lang))}
-      // На карточке Study у значка подсказки нет; у кнопки «Listen» в редакторе title показывает голос.
+      // On the Study card the icon has no tooltip; the "Listen" button in the editor shows the voice in its title.
       title={compact ? undefined : title}
       aria-label={`Listen to pronunciation (${lang})`}
     >

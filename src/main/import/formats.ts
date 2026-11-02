@@ -3,22 +3,22 @@ import { DomainError } from '../domain/errors'
 import { parseCsv, parseCsvRecords } from './csv'
 import { splitExamples } from './duocards'
 
-/** Карточка из файла — до проверки и создания. */
+/** A card from a file — before validation and creation. */
 export interface ParsedCard {
   term: string
   meaning: string
   transcription?: string | null
   transcriptionAlt?: string | null
   emoji?: string | null
-  /** Название набора из файла (форматы Recallo); null — без набора. */
+  /** Set name from the file (Recallo formats); null — no set. */
   set: string | null
   examples: ExampleInput[]
 }
 
-/** Сколько примеров пишем в CSV: остальные есть только в JSON. */
+/** How many examples go into the CSV: the rest are only in JSON. */
 const CSV_EXAMPLES = 3
 
-/** Формат по содержимому: JSON, заголовок DuoCards или Recallo, иначе — строки «термин⇥определение» Quizlet. */
+/** Format by content: JSON, a DuoCards or Recallo header, otherwise Quizlet "term⇥definition" lines. */
 export function detectFormat(content: string): ImportFormat {
   const text = content.replace(/^﻿/, '').trimStart()
   if (text.startsWith('{') || text.startsWith('[')) return 'recallo-json'
@@ -39,7 +39,7 @@ function parseRecalloJson(text: string): ParsedCard[] {
   } catch {
     fail('The file is not valid JSON')
   }
-  // Поддерживаем словарь Recallo, файл набора (data/sets/*.json) и просто массив карточек.
+  // Supported: a Recallo dictionary, a set file (data/sets/*.json) and a plain array of cards.
   const root = data as { format?: string; name?: string; cards?: unknown }
   if (root?.format === 'recallo-backup') fail('This is a full backup. Restore it in Settings → Backup instead.')
   const cards = Array.isArray(data) ? data : Array.isArray(root?.cards) ? root.cards : fail('No "cards" list found in the JSON file')
@@ -94,7 +94,7 @@ function parseDuoCards(text: string): ParsedCard[] {
   }))
 }
 
-/** Quizlet: «термин⇥определение» по строкам (по умолчанию), либо CSV из двух колонок. */
+/** Quizlet: "term⇥definition" per line (by default), or a two-column CSV. */
 function parseQuizlet(text: string): ParsedCard[] {
   const lines = text.split(/\r?\n/).filter((l) => l.trim())
   const pairs = lines.some((l) => l.includes('\t'))
@@ -106,7 +106,7 @@ function parseQuizlet(text: string): ParsedCard[] {
   return pairs.map(([term, meaning]) => ({ term: term ?? '', meaning: meaning ?? '', set: null, examples: [] }))
 }
 
-/** Разбирает файл в карточки; swap меняет местами слово и значение. */
+/** Parses a file into cards; swap swaps word and meaning. */
 export function parseImport(content: string, format: ImportFormat, swap = false): ParsedCard[] {
   const text = content.replace(/^﻿/, '')
   const parsers: Record<ImportFormat, (t: string) => ParsedCard[]> = {
@@ -115,7 +115,7 @@ export function parseImport(content: string, format: ImportFormat, swap = false)
     duocards: parseDuoCards,
     quizlet: parseQuizlet
   }
-  // Совсем пустые строки (без слова и без значения) не считаем карточками.
+  // Completely empty lines (no word and no meaning) do not count as cards.
   const cards = parsers[format](text)
     .map((c) => ({ ...c, term: c.term.trim(), meaning: c.meaning.trim() }))
     .filter((c) => c.term || c.meaning)
@@ -126,7 +126,7 @@ function csvField(value: string): string {
   return /[",\n\r]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
 }
 
-/** Словарь в CSV Recallo: одна строка — одна карточка, до трёх примеров. Открывается в Excel/Numbers. */
+/** A dictionary in Recallo CSV: one line — one card, up to three examples. Opens in Excel/Numbers. */
 export function toRecalloCsv(cards: Card[], sets: CardSet[]): string {
   const setName = (id: string | null) => sets.find((s) => s.id === id)?.name ?? ''
   const columns = ['term', 'meaning', 'set', 'transcription', 'transcription_alt', 'emoji']
@@ -139,11 +139,11 @@ export function toRecalloCsv(cards: Card[], sets: CardSet[]): string {
     }
     return values.map(csvField).join(',')
   })
-  // BOM — чтобы Excel сразу открывал файл в UTF-8 (кириллица, эмодзи, IPA).
+  // BOM — so Excel opens the file as UTF-8 right away (Cyrillic, emoji, IPA).
   return `﻿${[columns.join(','), ...rows].join('\r\n')}\r\n`
 }
 
-/** Словарь в JSON Recallo: все примеры и наборы, читается импортом обратно без потерь. */
+/** A dictionary in Recallo JSON: all examples and sets, reads back through import without loss. */
 export function toRecalloJson(spaceId: SpaceId, cards: Card[], sets: CardSet[], exportedAt: string): string {
   const setName = (id: string | null) => sets.find((s) => s.id === id)?.name ?? null
   const usedSets = sets.filter((s) => cards.some((c) => c.setId === s.id))

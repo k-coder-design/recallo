@@ -5,52 +5,52 @@ import type { Segment } from './types'
 const render = (segments: Segment[]): string => segments.map((s) => (s.masked ? '___' : s.text)).join('')
 
 describe('maskExample', () => {
-  it('скрывает фразу из примера спецификации', () => {
+  it('hides the phrase from the specification example', () => {
     expect(render(maskExample('I am used to working remotely.', 'am used to', [], 'en'))).toBe(
       'I ___ working remotely.'
     )
   })
 
-  it('скрывает все вхождения без учёта регистра', () => {
+  it('hides all occurrences ignoring case', () => {
     expect(render(maskExample('Run! I run every day. RUN.', 'run', [], 'en'))).toBe('___! I ___ every day. ___.')
   })
 
-  it('скрывает простые словоформы', () => {
+  it('hides simple word forms', () => {
     expect(render(maskExample('She runs, he is running.', 'run', [], 'en'))).toBe('She ___, he is ___.')
     expect(render(maskExample('Tengo dos casas.', 'casa', [], 'es'))).toBe('Tengo dos ___.')
     expect(render(maskExample('She is making tea.', 'make', [], 'en'))).toBe('She is ___ tea.')
     expect(render(maskExample('He studied, she studies.', 'study', [], 'en'))).toBe('He ___, she ___.')
   })
 
-  it('не скрывает часть другого слова', () => {
+  it('does not hide part of another word', () => {
     expect(render(maskExample('Be careful with the car.', 'car', [], 'en'))).toBe('Be careful with the ___.')
   })
 
-  it('поддерживает явные фрагменты для изменённых форм', () => {
+  it('supports explicit fragments for changed forms', () => {
     const segments = maskExample("I'm used to it. She went home.", 'am used to', ["'m used to", 'went'], 'en')
     expect(render(segments)).toBe('I___ it. She ___ home.')
   })
 
-  it('учитывает разные апострофы и пробелы', () => {
+  it('handles different apostrophes and spaces', () => {
     expect(render(maskExample('I’m  used to it.', 'am used to', ["'m used to"], 'en'))).toBe('I___ it.')
   })
 
-  it('работает с буквами с диакритикой', () => {
+  it('works with letters with diacritics', () => {
     expect(render(maskExample('Estoy acostumbrado al frío. ACOSTUMBRADO.', 'acostumbrado', [], 'es'))).toBe(
       'Estoy ___ al frío. ___.'
     )
   })
 
-  it('объединяет пересекающиеся фрагменты в одну заглушку', () => {
+  it('merges overlapping fragments into one placeholder', () => {
     expect(render(maskExample('I am used to it.', 'used', ['am used to'], 'en'))).toBe('I ___ it.')
   })
 
-  it('оставляет пример без изменений, если выражения в нём нет', () => {
+  it('leaves the example unchanged if the expression is not in it', () => {
     expect(maskExample('Nothing here.', 'run', [], 'en')).toEqual([{ text: 'Nothing here.', masked: false }])
   })
 })
 
-describe('maskExample: фразы из реального словаря', () => {
+describe('maskExample: phrases from the real dictionary', () => {
   const cases: Array<[term: string, example: string, expected: string]> = [
     ['Go the extra mile', 'He always goes the extra mile for his clients.', 'He always ___ for his clients.'],
     ['point out', 'She pointed out the mistakes.', 'She ___ the mistakes.'],
@@ -77,13 +77,13 @@ describe('maskExample: фразы из реального словаря', () =>
     expect(render(maskExample(example, term, [], 'en'))).toBe(expected)
   })
 
-  it('не скрывает служебные слова отдельно от выражения', () => {
+  it('does not hide function words apart from the expression', () => {
     expect(render(maskExample('To be or not to be.', 'to imply', [], 'en'))).toBe('To be or not to be.')
     expect(render(maskExample('The cat sat.', 'a rat race', [], 'en'))).toBe('The cat sat.')
   })
 })
 
-describe('maskExample: испанские фразы', () => {
+describe('maskExample: Spanish phrases', () => {
   const cases: Array<[term: string, example: string, expected: string]> = [
     ['¡Hasta luego!', '¡Hasta luego, amigos! ¡Cuídense!', '¡___, amigos! ¡Cuídense!'],
     ['¡Hasta mañana!', 'Gracias por la ayuda. ¡Hasta mañana!', 'Gracias por la ayuda. ¡___!'],
@@ -98,21 +98,21 @@ describe('maskExample: испанские фразы', () => {
     expect(render(maskExample(example, term, [], 'es'))).toBe(expected)
   })
 
-  it('не путает слова, отличающиеся не только ударением', () => {
+  it('does not confuse words that differ in more than the accent', () => {
     expect(render(maskExample('El año pasado.', 'ano', [], 'es'))).toBe('El año pasado.')
   })
 })
 
 describe('hideMasked', () => {
-  it('убирает скрытый текст с лицевой стороны', () => {
+  it('removes hidden text from the front side', () => {
     const hidden = hideMasked(maskExample('I run.', 'run', [], 'en'))
     expect(hidden.map((s) => s.text).join('')).not.toContain('run')
   })
 })
 
 describe('containsTerm', () => {
-  it('находит ответ в определении', () => {
+  it('finds the answer in the definition', () => {
     expect(containsTerm('to be used to something', 'used to', 'en')).toBe(true)
-    expect(containsTerm('быть привыкшим', 'used to', 'en')).toBe(false)
+    expect(containsTerm('to be accustomed', 'used to', 'en')).toBe(false)
   })
 })

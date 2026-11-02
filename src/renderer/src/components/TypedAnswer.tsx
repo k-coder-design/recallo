@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AnswerCheck } from '../../../shared/answerCheck'
 
-/** Поле ответа при вспоминании в режиме ввода (MVP-8). Пустой ответ — «не помню». */
+/** The answer field for recall in typing mode (MVP-8). An empty answer means "don't remember". */
 export function AnswerInput({ onSubmit }: { onSubmit: (answer: string) => void }) {
   const [value, setValue] = useState('')
   const input = useRef<HTMLInputElement>(null)
@@ -40,7 +40,7 @@ const VERDICT_TEXT: Record<AnswerCheck['verdict'], { icon: string; title: string
   empty: { icon: '·', title: 'No answer' }
 }
 
-/** Вердикт приложения и введённый ответ с подсвеченной разницей; оценку выбирает пользователь. */
+/** The app's verdict and the typed answer with the difference highlighted; the user chooses the grade. */
 export function VerdictPanel({ check }: { check: AnswerCheck }) {
   const text = VERDICT_TEXT[check.verdict]
   return (

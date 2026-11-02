@@ -3,7 +3,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import type { Db } from '../db/database'
 import { toAppError } from '../domain/errors'
 
-/** Ответ обработчика маршрута. */
+/** A route handler response. */
 export interface RouteResult {
   status?: number
   body?: unknown
@@ -22,12 +22,12 @@ export interface ApiRequest {
 export interface Route {
   method: 'GET' | 'POST' | 'PATCH' | 'DELETE'
   path: string
-  /** Без токена доступны только health и описание API. */
+  /** Without a token only health and the API description are available. */
   public?: boolean
   handle: (req: ApiRequest) => RouteResult | Promise<RouteResult>
 }
 
-/** HTTP-ошибка со стабильной структурой тела (API-12). */
+/** An HTTP error with a stable body structure (API-12). */
 export class HttpError extends Error {
   constructor(
     readonly status: number,
@@ -90,9 +90,9 @@ async function readBody(req: IncomingMessage): Promise<string> {
 }
 
 /**
- * Локальный HTTP-сервер API: слушает только 127.0.0.1, проверяет Host (защита от DNS rebinding),
- * требует Bearer-токен (API-08), не отдаёт CORS-заголовков — страницы в браузере не могут им пользоваться.
- * Изменяющие запросы с заголовком Idempotency-Key выполняются не более одного раза (API-14).
+ * Local HTTP API server: listens only on 127.0.0.1, checks Host (DNS rebinding protection),
+ * requires a Bearer token (API-08), sends no CORS headers — browser pages cannot use it.
+ * Changing requests with an Idempotency-Key header run at most once (API-14).
  */
 export class LocalApiServer {
   private server: Server | null = null
@@ -210,7 +210,7 @@ export class LocalApiServer {
           return this.send(res, stored.status, replay, { 'Idempotent-Replayed': 'true' })
         }
         const result = await this.run(matched.route, { method, path: url.pathname, params: matched.params, query: url.searchParams, headers: req.headers, body })
-        // Ответы с ошибкой сервера не запоминаем: такой запрос можно безопасно повторить.
+        // Server error responses are not remembered: such a request can safely be repeated.
         if (result.status < 500) {
           const now = Date.now()
           this.db.prepare('DELETE FROM idempotency_keys WHERE created_at < ?').run(new Date(now - IDEMPOTENCY_TTL_MS).toISOString())
@@ -230,7 +230,7 @@ export class LocalApiServer {
     }
   }
 
-  /** Выполняет маршрут; доменные ошибки превращаются в ответ, чтобы их можно было запомнить по ключу. */
+  /** Runs a route; domain errors become a response so they can be remembered by key. */
   private async run(route: Route, req: ApiRequest): Promise<{ status: number; body: unknown; headers?: Record<string, string> }> {
     try {
       const result = await route.handle(req)

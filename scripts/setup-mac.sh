@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Установка Recallo на Mac из исходников. Работает без вопросов — подходит и для ИИ-агента.
-#   bash scripts/setup-mac.sh               — проверить окружение, установить зависимости, прогнать тесты, установить в /Applications
-#   bash scripts/setup-mac.sh --no-install  — то же, но только собрать dist/…/Recallo.app, в /Applications не копировать
-#   bash scripts/setup-mac.sh --skip-tests  — без typecheck и тестов (быстрее)
-# Данные пользователя (~/Library/Application Support/Recallo) скрипт не трогает.
+# Install Recallo on a Mac from source. Runs without questions — suitable for an AI agent too.
+#   bash scripts/setup-mac.sh               — check the environment, install dependencies, run tests, install to /Applications
+#   bash scripts/setup-mac.sh --no-install  — the same, but only build dist/…/Recallo.app, do not copy to /Applications
+#   bash scripts/setup-mac.sh --skip-tests  — without typecheck and tests (faster)
+# The script does not touch user data (~/Library/Application Support/Recallo).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

@@ -6,14 +6,14 @@ function codeOf(fn: () => unknown): string | undefined {
   try {
     fn()
   } catch (error) {
-    // Тот же путь, что в IPC: ошибки домена и валидации приводятся к коду ответа.
+    // The same path as in IPC: domain and validation errors are mapped to a response code.
     return toAppError(error).code
   }
   return undefined
 }
 
 describe('SetService', () => {
-  it('создаёт, переименовывает и защищает от перезаписи свежей версии', () => {
+  it('creates, renames and protects a newer version from overwriting', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie', description: 'Words about films' })
     expect(set).toMatchObject({ name: 'Movie', description: 'Words about films', cardCount: 0, version: 1 })
@@ -23,14 +23,14 @@ describe('SetService', () => {
     expect(codeOf(() => t.sets.update(set.id, { version: 1, name: 'Films' }))).toBe('CONFLICT')
   })
 
-  it('не допускает два набора с одним названием в одном языке', () => {
+  it('does not allow two sets with the same name in one language', () => {
     const t = setup()
     t.sets.create({ spaceId: 'en', name: 'Movie' })
     expect(codeOf(() => t.sets.create({ spaceId: 'en', name: 'movie' }))).toBe('VALIDATION')
     expect(t.sets.create({ spaceId: 'es', name: 'Movie' }).spaceId).toBe('es')
   })
 
-  it('удаляет набор, оставляя карточки без набора с прогрессом', () => {
+  it('deletes a set, leaving its cards without a set with their progress', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie' })
     const card = t.addCard({ setId: set.id })
@@ -43,7 +43,7 @@ describe('SetService', () => {
     expect(t.sets.list('en')).toEqual([])
   })
 
-  it('удаляет набор вместе с карточками только по явной политике', () => {
+  it('deletes a set together with its cards only with an explicit policy', () => {
     const t = setup()
     const set = t.sets.create({ spaceId: 'en', name: 'Movie' })
     t.addCard({ term: 'a', setId: set.id })
@@ -56,15 +56,15 @@ describe('SetService', () => {
     expect(t.cards.list('en').map((c) => c.term)).toEqual(['c'])
   })
 
-  it('не кладёт карточку в набор другого языка', () => {
+  it('does not put a card into a set of another language', () => {
     const t = setup()
     const spanish = t.sets.create({ spaceId: 'es', name: 'Saludos' })
     expect(codeOf(() => t.addCard({ setId: spanish.id }))).toBe('VALIDATION')
   })
 })
 
-describe('карточки и наборы', () => {
-  it('переносит карточки между наборами без потери прогресса', () => {
+describe('cards and sets', () => {
+  it('moves cards between sets without losing progress', () => {
     const t = setup()
     const a = t.sets.create({ spaceId: 'en', name: 'A' })
     const b = t.sets.create({ spaceId: 'en', name: 'B' })
@@ -79,22 +79,23 @@ describe('карточки и наборы', () => {
     expect(t.sets.unsetCount('en')).toBe(1)
   })
 
-  it('фильтрует по набору и «без набора» и ищет по слову, значению и набору', () => {
+  it('filters by set and "no set" and searches by word, meaning and set', () => {
     const t = setup()
     const movie = t.sets.create({ spaceId: 'en', name: 'Movie' })
-    t.addCard({ term: 'thrilling', meaning: 'захватывающий', setId: movie.id })
+    t.addCard({ term: 'thrilling', meaning: 'exciting', setId: movie.id })
     t.addCard({ term: 'loophole', meaning: 'лазейка' })
 
     expect(t.cards.list('en', { scope: { kind: 'set', setId: movie.id } }).map((c) => c.term)).toEqual(['thrilling'])
     expect(t.cards.list('en', { scope: { kind: 'none' } }).map((c) => c.term)).toEqual(['loophole'])
+    // Cyrillic on purpose: the user's meanings are Russian, and search must ignore case there too.
     expect(t.cards.list('en', { search: 'ЛАЗЕЙ' }).map((c) => c.term)).toEqual(['loophole'])
     expect(t.cards.list('en', { search: 'movie' }).map((c) => c.term)).toEqual(['thrilling'])
     expect(t.cards.list('en', { search: 'thrill', scope: { kind: 'none' } })).toEqual([])
   })
 
-  it('находит дубли без учёта регистра, пунктуации, to/the и вариантов через « / »', () => {
+  it('finds duplicates ignoring case, punctuation, to/the and variants split by " / "', () => {
     const t = setup()
-    const existing = t.addCard({ term: 'to embrace', meaning: 'принять' })
+    const existing = t.addCard({ term: 'to embrace', meaning: 'to accept' })
     t.addCard({ spaceId: 'es', term: '¡Hola!', meaning: 'Hello' })
     expect(t.cards.findDuplicates('en', 'Embrace').map((d) => d.id)).toEqual([existing.id])
     expect(t.cards.findDuplicates('en', 'embraced')).toEqual([])
@@ -103,8 +104,8 @@ describe('карточки и наборы', () => {
   })
 })
 
-describe('обучение по набору и отмена оценки', () => {
-  it('учит только карточки набора, а прогресс общий с обучением всего языка', () => {
+describe('study by set and undo', () => {
+  it('studies only the set cards, while progress is shared with studying the whole language', () => {
     const t = setup()
     const movie = t.sets.create({ spaceId: 'en', name: 'Movie' })
     const inSet = t.addCard({ term: 'thrilling', setId: movie.id })
@@ -117,13 +118,13 @@ describe('обучение по набору и отмена оценки', () =
     t.study.reveal(shown.presentationId)
     t.study.grade(shown.presentationId, 'remembered')
 
-    // В общей очереди та же карточка уже знакома: прогресс один на карточку (SRS-09).
+    // In the shared queue the same card is already met: one progress per card (SRS-09).
     t.advance(MINUTE)
     expect(expectRecall(t.study.next('en')).cardId).toBe(inSet.id)
     expect(t.study.counts('en', { kind: 'none' })).toMatchObject({ due: 0, new: 1 })
   })
 
-  it('отменяет оценку вспоминания: прогресс как был, карточка показывается снова', () => {
+  it('undoes a recall grade: progress as it was, the card is shown again', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -137,12 +138,12 @@ describe('обучение по набору и отмена оценки', () =
     expect(expectRecall(next).cardId).toBe(card.id)
     expect(t.stats.overview('en').today).toMatchObject({ forgot: 0 })
 
-    // Повторная отмена ничего не меняет.
+    // Undoing again changes nothing.
     expect(t.study.undo(result.reviewId).undone.duplicate).toBe(true)
     expect(t.cards.get(card.id).progress).toEqual(before)
   })
 
-  it('отменяет знакомство: карточка снова новая', () => {
+  it('undoes a meeting: the card is new again', () => {
     const t = setup()
     const card = t.addCard()
     const { result } = t.answer('remembered')
@@ -152,7 +153,7 @@ describe('обучение по набору и отмена оценки', () =
     expect(expectIntro(next).cardId).toBe(card.id)
   })
 
-  it('отменяет только последнюю оценку неизменённой карточки', () => {
+  it('undoes only the last grade of an unchanged card', () => {
     const t = setup()
     const card = t.addCard()
     t.introduceAll()
@@ -166,7 +167,7 @@ describe('обучение по набору и отмена оценки', () =
     expect(codeOf(() => t.study.undo(last))).toBe('CONFLICT')
   })
 
-  it('считает забывания для подсказки на обороте без отменённых оценок', () => {
+  it('counts forgets for the hint on the back without undone grades', () => {
     const t = setup()
     t.addCard()
     t.introduceAll()

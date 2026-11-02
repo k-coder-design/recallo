@@ -16,11 +16,11 @@ interface ExampleDraft {
 interface Props {
   spaceId: SpaceId
   card: Card | null
-  /** Набор новой карточки по умолчанию — например, открытый сейчас в списке. */
+  /** The default set for a new card — e.g. the one open in the list right now. */
   defaultSetId?: string | null
   onSaved: (card: Card) => void
   onClose: () => void
-  /** Открыть найденный дубль вместо текущей карточки. */
+  /** Open the found duplicate instead of the current card. */
   onOpenCard?: (cardId: string) => void
 }
 
@@ -65,7 +65,7 @@ export function CardEditor({ spaceId, card, defaultSetId = null, onSaved, onClos
       .catch(() => setSets([]))
   }, [spaceId])
 
-  // Предупреждение о дублях: та же карточка не должна появиться незаметно дважды.
+  // Duplicate warning: the same card must not quietly appear twice.
   useEffect(() => {
     if (!term.trim()) return setDuplicates([])
     const timer = window.setTimeout(() => {
@@ -78,7 +78,7 @@ export function CardEditor({ spaceId, card, defaultSetId = null, onSaved, onClos
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Пока транскрипцию не правили вручную, она следует за словом (D22).
+  // Until the transcription is edited manually, it follows the word (D22).
   const termChanged = card === null || term.trim() !== card.term
   const followsTerm = !transcriptionTouched && (termChanged || card.transcription === null)
   const altFollowsTerm = altAccent !== null && !transcriptionAltTouched && (termChanged || card.transcriptionAlt === null)
@@ -335,7 +335,7 @@ export function CardEditor({ spaceId, card, defaultSetId = null, onSaved, onClos
 }
 
 interface TranscriptionInputProps {
-  /** Подпись варианта произношения (флаг и регион); null — вариант один. */
+  /** A pronunciation label (flag and region); null — there is only one variant. */
   label: string | null
   value: string
   empty: boolean

@@ -4,14 +4,14 @@ import type { Db } from './types'
 import { openWasmDatabase } from './wasm'
 
 /**
- * База для тестов ядра. Обычно — better-sqlite3, как в приложении для Mac; при RECALLO_DB=wasm —
- * SQLite WebAssembly, как в телефонной сборке (D57). Так одни и те же тесты проверяют обе базы.
+ * The database for core tests. Normally better-sqlite3, as in the Mac app; with RECALLO_DB=wasm —
+ * SQLite WebAssembly, as in the phone build (D57). So the same tests check both databases.
  */
 let sqlite3: Sqlite3Static | undefined
 
 export const testEngine = process.env['RECALLO_DB'] === 'wasm' ? 'wasm' : 'native'
 
-/** Загрузка WebAssembly асинхронная — её делает setupFiles до тестов (vitest.config.ts). */
+/** Loading WebAssembly is asynchronous — setupFiles does it before the tests (vitest.config.ts). */
 export async function initTestDatabase(): Promise<void> {
   if (testEngine === 'wasm') sqlite3 ??= await sqlite3InitModule()
 }

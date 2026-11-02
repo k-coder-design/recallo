@@ -2,14 +2,14 @@ import type { Database as WasmDatabase, PreparedStatement, Sqlite3Static } from 
 import { migrate } from './migrations'
 import type { Db, RunResult, Statement } from './types'
 
-/** Как в better-sqlite3: разных запросов в приложении немного, переполнение просто очищает кэш. */
+/** As in better-sqlite3: the app has few distinct queries; overflow simply clears the cache. */
 const STATEMENT_CACHE_LIMIT = 300
 
 /**
- * База SQLite WebAssembly за интерфейсом Db — для телефонной сборки (D57) и для прогона
- * тестов домена на второй базе. Повторяет поведение better-sqlite3 там, где на него опирается ядро:
- * именованные параметры без префикса (`{ spaceId }` для `@spaceId`), get/all/run/pluck,
- * транзакции с SAVEPOINT для вложенных вызовов, pragma с { simple }.
+ * A SQLite WebAssembly database behind the Db interface — for the phone build (D57) and for running
+ * the domain tests on a second database. It mirrors better-sqlite3 where the core relies on it:
+ * named parameters without a prefix (`{ spaceId }` for `@spaceId`), get/all/run/pluck,
+ * transactions with SAVEPOINT for nested calls, pragma with { simple }.
  */
 export function wrapWasmDatabase(sqlite3: Sqlite3Static, raw: WasmDatabase): Db {
   const cache = new Map<string, WasmStatement>()
@@ -64,7 +64,7 @@ export function wrapWasmDatabase(sqlite3: Sqlite3Static, raw: WasmDatabase): Db 
   return db
 }
 
-/** Открывает базу WebAssembly (в памяти или файл VFS) и применяет те же миграции, что на Mac. */
+/** Opens a WebAssembly database (in memory or a VFS file) and applies the same migrations as on the Mac. */
 export function openWasmDatabase(sqlite3: Sqlite3Static, open: () => WasmDatabase = () => new sqlite3.oo1.DB(':memory:')): Db {
   const db = wrapWasmDatabase(sqlite3, open())
   db.pragma('foreign_keys = ON')
@@ -74,7 +74,7 @@ export function openWasmDatabase(sqlite3: Sqlite3Static, open: () => WasmDatabas
 
 class WasmStatement implements Statement {
   private plucking = false
-  /** Имя каждого параметра по порядку (без префикса @ : $) или null для «?». */
+  /** Each parameter name in order (without the @ : $ prefix), or null for "?". */
   private readonly names: Array<string | null>
 
   constructor(
@@ -129,8 +129,8 @@ class WasmStatement implements Statement {
   }
 
   /**
-   * Параметры как в better-sqlite3: позиционные значения по порядку «?», именованные —
-   * из объекта, ключи без префикса. Пропущенный именованный параметр — ошибка, как там.
+   * Parameters as in better-sqlite3: positional values in "?" order, named ones —
+   * from an object, keys without a prefix. A missing named parameter is an error, as there.
    */
   private bind(params: unknown[]): void {
     if (this.names.length === 0) return
@@ -150,7 +150,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value) && !ArrayBuffer.isView(value)
 }
 
-/** better-sqlite3 отклоняет undefined и булевы значения; ядро их не передаёт, но null оставляем null. */
+/** better-sqlite3 rejects undefined and booleans; the core does not pass them, but null stays null. */
 function toSql(value: unknown): string | number | bigint | null | Uint8Array {
   if (value === undefined) throw new RangeError('Too few parameter values were provided')
   if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'bigint') return value

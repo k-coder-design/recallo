@@ -2,27 +2,27 @@ import { levenshtein } from '../../shared/answerCheck'
 import type { Card } from '../../shared/types'
 
 /**
- * Поиск карточек (D54). Запрос делится на слова, и каждое слово должно найтись хотя бы в одном поле:
- * в самом слове карточки, значении, примерах с переводами или названии набора. Порядок полей — их вес:
- * совпадение в слове карточки важнее, чем в значении, а оно — важнее, чем в примере.
- * Без регистра, диакритики и знаков: «hold at bay» находит «hold/keep sth (sb) at bay», corazon — corazón.
+ * Card search (D54). The query is split into words, and every word must be found in at least one field:
+ * the card word itself, the meaning, examples with translations, or the set name. The field order is their weight:
+ * a match in the card word matters more than in the meaning, and that more than in an example.
+ * Ignores case, diacritics and symbols: "hold at bay" finds "hold/keep sth (sb) at bay", corazon — corazón.
  */
 
-/** Короткие слова запроса (1–2 буквы) ищутся только с начала слова, иначе «ch» найдёт каждое «which». */
+/** Short query words (1–2 letters) match only from the word start, otherwise "ch" would find every "which". */
 const SHORT_TOKEN = 2
-/** С какой длины прощается одна опечатка: в коротких словах лишняя буква даёт слишком много чужих совпадений. */
+/** From what length one typo is forgiven: in short words an extra letter gives too many unrelated matches. */
 const FUZZY_FROM = 5
 
 const FIELD_WEIGHT = { term: 0, meaning: 10, examples: 20, set: 20 } as const
-/** Внутри поля: слово целиком, начало слова, часть слова, слово с опечаткой. */
+/** Within a field: the whole word, the word start, part of a word, a word with a typo. */
 const EXACT = 0
 const PREFIX = 1
 const INSIDE = 2
 const FUZZY = 3
-/** Запрос совпал со словом карточки целиком — такая карточка всегда первая. */
+/** The query matched the card word entirely — such a card always comes first. */
 const WHOLE_TERM_BONUS = -100
 
-/** Слова строки для сравнения: без регистра, диакритики и знаков (sth/sb, скобки, ¿ ¡). */
+/** Words of a string for comparison: no case, diacritics or symbols (sth/sb, brackets, ¿ ¡). */
 export function searchWords(value: string): string[] {
   return value
     .normalize('NFD')
@@ -32,7 +32,7 @@ export function searchWords(value: string): string[] {
     .filter(Boolean)
 }
 
-/** Насколько хорошо слово запроса совпало с одним из слов поля; null — не совпало. */
+/** How well a query word matched one of the field words; null — no match. */
 function matchLevel(token: string, words: string[]): number | null {
   let best: number | null = null
   for (const word of words) {
@@ -58,7 +58,7 @@ interface Indexed {
   term: string
 }
 
-/** Карточки, где нашлось каждое слово запроса, — лучшие совпадения первыми, при равенстве — исходный порядок. */
+/** Cards where every query word was found — best matches first, ties keep the original order. */
 export function searchCards(cards: Card[], setNames: Map<string, string>, query: string): Card[] {
   const tokens = searchWords(query)
   if (tokens.length === 0) return cards

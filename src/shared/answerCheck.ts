@@ -1,9 +1,9 @@
 import type { Grade, SpaceId } from './types'
 
-/** Вердикт проверки введённого ответа (MVP-8, D50). almost — одна опечатка, засчитывается как верный. */
+/** Verdict of a typed answer check (MVP-8, D50). almost — one typo, counted as correct. */
 export type AnswerVerdict = 'correct' | 'almost' | 'wrong' | 'empty'
 
-/** Часть сравнения: совпало, лишнее/неверное у пользователя или пропущенное из ответа. */
+/** A part of the comparison: matched, extra/wrong in the user's input, or missing from the answer. */
 export interface DiffPart {
   text: string
   kind: 'same' | 'wrong' | 'missing'
@@ -11,21 +11,21 @@ export interface DiffPart {
 
 export interface AnswerCheck {
   verdict: AnswerVerdict
-  /** Что ввёл пользователь, как есть. */
+  /** What the user typed, as is. */
   typed: string
-  /** Вариант ответа, ближайший к введённому, — в исходном написании карточки. */
+  /** The answer variant closest to the input — in the card's original spelling. */
   expected: string
-  /** Посимвольное сравнение введённого с ожидаемым (для almost и wrong). */
+  /** Character-by-character comparison of the input with the expected answer (for almost and wrong). */
   diff: DiffPart[]
-  /** Оценка, которую предлагает приложение; пользователь может выбрать другую. */
+  /** The grade the app suggests; the user may choose another. */
   suggestedGrade: Grade
 }
 
 const MAX_VARIANTS = 32
-/** С какой длины ответа прощается одна опечатка. */
+/** From what answer length one typo is forgiven. */
 const TYPO_MIN_LENGTH = 5
 const LEADING_ARTICLE: Partial<Record<SpaceId, RegExp>> = { en: /^(to|a|an|the) / }
-/** Словарные сокращения и синонимы-заглушки: sth = something, sb = someone = somebody. */
+/** Dictionary abbreviations and placeholder synonyms: sth = something, sb = someone = somebody. */
 const EQUIVALENTS: Array<[RegExp, string]> = [
   [/\bsth\b/g, 'something'],
   [/\bsb\b/g, 'somebody'],
@@ -34,10 +34,10 @@ const EQUIVALENTS: Array<[RegExp, string]> = [
 
 const foldChar = (c: string) => c.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
 
-/** Форма для сравнения: без регистра, диакритики, пунктуации и начального артикля. */
+/** The form for comparison: no case, diacritics, punctuation or leading article. */
 export function normalizeAnswer(value: string, spaceId: SpaceId): string {
   let result = [...value].map(foldChar).join('')
-  // Сначала замены (sb's → somebody's), потом апострофы: иначе «sbs» уже не узнать.
+  // Replacements first (sb's → somebody's), then apostrophes: otherwise "sbs" can no longer be recognized.
   result = result.replace(/[^\p{L}\p{N}'’`]+/gu, ' ')
   for (const [pattern, word] of EQUIVALENTS) result = result.replace(pattern, word)
   result = result.replace(/['’`]/g, '').replace(/\s+/g, ' ').trim()
@@ -46,11 +46,11 @@ export function normalizeAnswer(value: string, spaceId: SpaceId): string {
 }
 
 /**
- * Допустимые ответы карточки: варианты через « / », слэш внутри фразы (hold/keep — любое из слов),
- * необязательные части в скобках и списки «disaster, trouble, success, etc.» — любой пункт.
+ * Accepted answers for a card: variants split by " / ", a slash inside a phrase (hold/keep — either word),
+ * optional parts in parentheses and lists "disaster, trouble, success, etc." — any item.
  */
 export function answerVariants(term: string): string[] {
-  // Сама фраза целиком (со слэшами и запятыми) тоже верный ответ.
+  // The whole phrase (with slashes and commas) is also a correct answer.
   const variants = new Set<string>([term.trim()])
   for (const alternative of term.split(/\s+\/\s+/)) {
     variants.add(alternative.trim())
@@ -88,7 +88,7 @@ function expandSlashes(value: string): string[] {
   return results
 }
 
-/** Расстояние Левенштейна: сколько вставок, удалений и замен отделяют одну строку от другой. */
+/** Levenshtein distance: how many insertions, deletions and substitutions separate two strings. */
 export function levenshtein(a: string, b: string): number {
   const row = Array.from({ length: b.length + 1 }, (_, i) => i)
   for (let i = 1; i <= a.length; i++) {
@@ -103,7 +103,7 @@ export function levenshtein(a: string, b: string): number {
   return row[b.length] as number
 }
 
-/** Посимвольное выравнивание: что из введённого совпало, что лишнее и чего не хватает. */
+/** Character alignment: what of the input matched, what is extra and what is missing. */
 export function diffAnswer(typed: string, expected: string): DiffPart[] {
   const a = [...typed]
   const b = [...expected]
@@ -122,7 +122,7 @@ export function diffAnswer(typed: string, expected: string): DiffPart[] {
   }
   let i = a.length
   let j = b.length
-  // Обход с конца; при равной стоимости пропуск и лишнее ставятся правее (reckles → reckles + «s»).
+  // Walk from the end; at equal cost, missing and extra go further right (reckles → reckles + "s").
   while (i > 0 || j > 0) {
     if (j > 0 && cost[i]![j] === cost[i]![j - 1]! + 1) {
       push(b[j - 1] as string, 'missing')
@@ -144,8 +144,8 @@ export function diffAnswer(typed: string, expected: string): DiffPart[] {
 }
 
 /**
- * Подсветка разницы полезна, только когда ответ близок (опечатка, пара ошибок). Совсем другой ответ
- * посимвольно не сравнивается — получилась бы каша; он показывается целиком как неверный.
+ * Highlighting the difference is useful only when the answer is close (a typo, a couple of mistakes). A completely
+ * different answer is not compared character by character — it would be a mess; it is shown whole as wrong.
  */
 function diffFor(verdict: AnswerVerdict, typed: string, expected: string, distance: number, length: number): DiffPart[] {
   if (verdict === 'correct' || verdict === 'empty') return []
@@ -153,7 +153,7 @@ function diffFor(verdict: AnswerVerdict, typed: string, expected: string, distan
   return [{ text: typed, kind: 'wrong' }]
 }
 
-/** Проверяет введённый ответ против слова карточки. Окончательную оценку выбирает пользователь. */
+/** Checks the typed answer against the card word. The user chooses the final grade. */
 export function checkAnswer(typed: string, term: string, spaceId: SpaceId): AnswerCheck {
   const variants = answerVariants(term)
   const answer = normalizeAnswer(typed, spaceId)

@@ -11,8 +11,8 @@ interface Props {
 }
 
 /**
- * Удаление набора — всегда с явным выбором (SET-08…10): оставить карточки без набора,
- * удалить их вместе с набором (после второго подтверждения с количеством) или отменить.
+ * Deleting a set always needs an explicit choice (SET-08…10): keep the cards without a set,
+ * delete them with the set (after a second confirmation with the count) or cancel.
  */
 export function DeleteSetDialog({ set, onDeleted, onClose }: Props) {
   const [confirmingCards, setConfirmingCards] = useState(false)

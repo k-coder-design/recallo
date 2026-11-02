@@ -4,7 +4,7 @@ import { App } from './App'
 import { applyCachedTheme } from './lib/theme'
 import './styles.css'
 
-// Тема — до первой отрисовки, по последнему выбору; App затем сверяет её с настройкой в базе.
+// The theme before the first render, from the last choice; App then checks it against the setting in the database.
 applyCachedTheme()
 
 const root = document.getElementById('root')

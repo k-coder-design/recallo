@@ -4,17 +4,17 @@ const WORD_CHAR = /[\p{L}\p{N}]/u
 const NOT_AFTER_WORD = '(?<![\\p{L}\\p{N}])'
 const NOT_BEFORE_WORD = '(?![\\p{L}\\p{N}])'
 const APOSTROPHE = /['’]/g
-/** Произвольное слово примера, которым заполняется заглушка вроде someone/something. */
+/** An arbitrary example word that fills a placeholder like someone/something. */
 const ANY_WORD = "[\\p{L}\\p{N}'’-]+"
-/** От одного до трёх слов: «someone» → «her», «the new project», «his parents'». */
+/** One to three words: "someone" → "her", "the new project", "his parents'". */
 const ANY_PHRASE = `${ANY_WORD}(?:\\s+${ANY_WORD}){0,2}?`
 
 interface LanguageRules {
   suffixes: string[]
-  /** Слова, которые не склоняются: предлоги, артикли, союзы. */
+  /** Words that do not inflect: prepositions, articles, conjunctions. */
   fixed: Set<string>
   articles: string[]
-  /** Заглушки в самом выражении: на их месте в примере стоит любое слово или фраза. */
+  /** Placeholders in the expression itself: any word or phrase stands in their place in an example. */
   placeholders: Set<string>
   possessives: Set<string>
   reflexives: Set<string>
@@ -49,7 +49,7 @@ const EN_REFLEXIVES = ['myself', 'yourself', 'himself', 'herself', 'itself', 'ou
 const ES_POSSESSIVES = ['mi', 'mis', 'tu', 'tus', 'su', 'sus', 'nuestro', 'nuestra', 'nuestros', 'nuestras']
 const BE_FORMS = ['be', 'am', 'is', 'are', 'was', 'were', 'been', 'being']
 
-/** Частые неправильные глаголы: формы, которые не получаются окончаниями. */
+/** Common irregular verbs: forms that cannot be made with endings. */
 const EN_IRREGULAR: Record<string, string[]> = {
   be: BE_FORMS,
   become: ['became'],
@@ -125,16 +125,16 @@ const ACCENT_CLASSES: Record<string, string> = {
   ü: '[uúü]'
 }
 
-/** В испанском ударение часто пропускают при наборе: «como» должно находить «cómo». */
+/** In Spanish the accent is often skipped when typing: "como" should find "cómo". */
 function foldAccents(pattern: string, spaceId: SpaceId): string {
   if (spaceId !== 'es') return pattern
   return pattern.replace(/[aáeéiíoóuúü]/giu, (ch) => ACCENT_CLASSES[ch.toLowerCase()] ?? ch)
 }
 
-/** Пунктуация по краям («¡Hasta luego!») в примере может отличаться: «¡Hasta luego, amigos!». */
+/** Edge punctuation ("¡Hasta luego!") may differ in an example: "¡Hasta luego, amigos!". */
 const EDGE_PUNCTUATION = /^[\s¡¿!?.,;:…"«»“”]+|[\s¡¿!?.,;:…"«»“”]+$/gu
 
-/** «Mucho gusto / un gusto» — несколько равноправных вариантов выражения. */
+/** "Mucho gusto / un gusto" — several equal variants of the expression. */
 function termVariants(term: string): string[] {
   return term
     .split(/\s+\/\s+/)
@@ -142,7 +142,7 @@ function termVariants(term: string): string[] {
     .filter(Boolean)
 }
 
-/** Все формы одного слова выражения: окончания, изменение основы, неправильные формы. */
+/** All forms of one word of the expression: endings, stem changes, irregular forms. */
 function wordForms(word: string, spaceId: SpaceId): string {
   const lower = word.toLowerCase()
   const rules = RULES[spaceId]
@@ -167,7 +167,7 @@ function wordForms(word: string, spaceId: SpaceId): string {
 
 type Token = { kind: 'word'; options: string[] } | { kind: 'optional'; tokens: Token[] }
 
-/** «hold/keep sth (sb) at bay» → слова с вариантами и необязательные группы в скобках. */
+/** "hold/keep sth (sb) at bay" → words with variants and optional groups in parentheses. */
 function tokenize(phrase: string): Token[] {
   const tokens: Token[] = []
   for (const part of phrase.split(/(\([^)]*\))/)) {
@@ -196,7 +196,7 @@ function wordPattern(word: string, spaceId: SpaceId, position: number): string {
     return NOT_AFTER_WORD + literal(spaceId === 'en' ? EN_POSSESSIVES : ES_POSSESSIVES)
   }
   if (rules.reflexives.has(lower)) return NOT_AFTER_WORD + literal(EN_REFLEXIVES)
-  // Артикль внутри выражения может быть любым: settle an account → settle the account.
+  // An article inside the expression can be any: settle an account → settle the account.
   if (position > 0 && rules.articles.includes(lower)) return NOT_AFTER_WORD + literal(rules.articles)
   return boundary + wordForms(word, spaceId)
 }
@@ -212,21 +212,21 @@ function tokensPattern(tokens: Token[], spaceId: SpaceId): string {
     const pattern = options.length === 1 ? (options[0] ?? '') : alternatives(options)
     parts.push(parts.length === 0 ? pattern : `\\s+${pattern}`)
   })
-  // Первая группа может оказаться необязательной: тогда разделитель-пробел ей не нужен.
+  // The first group may turn out optional: then it needs no separating space.
   return parts.join('').replace(/^\(\?:\\s\+/, '(?:')
 }
 
-/** Регулярное выражение для изучаемого выражения со всеми его формами. */
+/** A regular expression for the studied expression with all its forms. */
 function buildTermPattern(term: string, spaceId: SpaceId): string | null {
   const rules = RULES[spaceId]
   const tokens = tokenize(term)
 
-  // Заглушки по краям — это не часть выражения: «read up on something» скрывает «read up on».
+  // Placeholders at the edges are not part of the expression: "read up on something" hides "read up on".
   while (isPlaceholder(tokens[0], rules)) tokens.shift()
   while (isPlaceholder(tokens[tokens.length - 1], rules)) tokens.pop()
   if (tokens.length === 0) return null
 
-  // Служебное начало необязательно: to imply → implied, a rat race → the rat race, be likely → are likely.
+  // A function-word start is optional: to imply → implied, a rat race → the rat race, be likely → are likely.
   let prefix = ''
   const first = tokens[0]
   const firstWord = first?.kind === 'word' && first.options.length === 1 ? first.options[0]?.toLowerCase() : undefined
@@ -248,7 +248,7 @@ function buildTermPattern(term: string, spaceId: SpaceId): string | null {
   return prefix + body + (WORD_CHAR.test(last) || last === ')' ? NOT_BEFORE_WORD : '')
 }
 
-/** Явный фрагмент примера скрывается дословно (CARD-09). */
+/** An explicit example fragment is hidden verbatim (CARD-09). */
 function buildFragmentPattern(fragment: string): string | null {
   const words = fragment.trim().split(/\s+/).filter(Boolean)
   const first = words[0]
@@ -270,7 +270,7 @@ function mergeRanges(ranges: Array<[number, number]>): Array<[number, number]> {
   return merged
 }
 
-/** Диапазоны примера, которые надо скрыть: все вхождения выражения и явных фрагментов (CARD-07…09). */
+/** Example ranges to hide: all occurrences of the expression and explicit fragments (CARD-07…09). */
 export function findMaskRanges(
   text: string,
   term: string,
@@ -285,7 +285,7 @@ export function findMaskRanges(
   for (const pattern of patterns) {
     if (!pattern) continue
     for (const match of text.matchAll(new RegExp(pattern, 'giu'))) {
-      // Пробел, захваченный необязательной частью, не скрываем.
+      // A space captured by an optional part is not hidden.
       const value = match[0]
       const start = match.index + (value.length - value.trimStart().length)
       const end = match.index + value.trimEnd().length
@@ -295,7 +295,7 @@ export function findMaskRanges(
   return mergeRanges(ranges)
 }
 
-/** Разбивает пример на сегменты; скрываемые помечены masked. */
+/** Splits an example into segments; hidden ones are marked masked. */
 export function maskExample(
   text: string,
   term: string,
@@ -313,12 +313,12 @@ export function maskExample(
   return segments
 }
 
-/** Убирает текст скрытых сегментов, чтобы ответ не попадал на лицевую сторону. */
+/** Removes the text of hidden segments so the answer does not reach the front side. */
 export function hideMasked(segments: readonly Segment[]): Segment[] {
   return segments.map((s) => (s.masked ? { text: '', masked: true } : s))
 }
 
-/** Содержит ли текст изучаемое выражение — для предупреждения о подсказке в значении. */
+/** Whether the text contains the studied expression — for the warning about a hint in the meaning. */
 export function containsTerm(text: string, term: string, spaceId: SpaceId): boolean {
   return findMaskRanges(text, term, [], spaceId).length > 0
 }

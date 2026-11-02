@@ -13,9 +13,9 @@ export interface TestContext extends Services {
   now: () => Date
   advance: (ms: number) => void
   addCard: (input?: Partial<CardCreateInput>) => Card
-  /** Показывает следующую карточку, раскрывает её и ставит оценку. */
+  /** Shows the next card, reveals it and grades it. */
   answer: (grade: Grade, options?: { spaceId?: SpaceId; avoidCardId?: string }) => { shown: ShownCard; result: GradeResult }
-  /** Проходит знакомство со всеми новыми карточками и ждёт, пока они станут доступны для вспоминания. */
+  /** Goes through the meeting of all new cards and waits until they are ready for recall. */
   introduceAll: (spaceId?: SpaceId) => void
 }
 
@@ -38,13 +38,13 @@ export function setup(): TestContext {
       time += ms
     },
     addCard(input = {}) {
-      return services.cards.create({ spaceId: 'en', term: 'run', meaning: 'бегать', ...input })
+      return services.cards.create({ spaceId: 'en', term: 'run', meaning: 'to run', ...input })
     },
     answer,
     introduceAll(spaceId = 'en') {
       while (services.study.counts(spaceId).new > 0) {
         const { shown } = answer('remembered', { spaceId })
-        if (shown.mode !== 'intro') throw new Error('Ожидалось знакомство')
+        if (shown.mode !== 'intro') throw new Error('Expected a meeting')
       }
       time += INTRO_TO_RECALL_DELAY_MS
     }
@@ -52,18 +52,18 @@ export function setup(): TestContext {
 }
 
 export function expectCard(next: NextCard): ShownCard {
-  if (next.kind !== 'card') throw new Error(`Ожидалась карточка, получено: ${next.kind}`)
+  if (next.kind !== 'card') throw new Error(`Expected a card, got: ${next.kind}`)
   return next
 }
 
 export function expectRecall(next: NextCard): Extract<NextCard, { mode: 'recall' }> {
   const card = expectCard(next)
-  if (card.mode !== 'recall') throw new Error('Ожидалось вспоминание, получено знакомство')
+  if (card.mode !== 'recall') throw new Error('Expected a recall, got a meeting')
   return card
 }
 
 export function expectIntro(next: NextCard): Extract<NextCard, { mode: 'intro' }> {
   const card = expectCard(next)
-  if (card.mode !== 'intro') throw new Error('Ожидалось знакомство, получено вспоминание')
+  if (card.mode !== 'intro') throw new Error('Expected a meeting, got a recall')
   return card
 }

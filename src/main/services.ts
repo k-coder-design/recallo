@@ -33,19 +33,19 @@ export function createServices(db: Db, options: { now?: Clock; scheduler?: Sched
   return { cards, sets, study, limits, stats, transfer }
 }
 
-/** Тема оформления: чтение и смена с немедленным применением к окну (D49). */
+/** Appearance theme: read and change, applied to the window right away (D49). */
 export interface Appearance {
   theme: () => Theme
   setTheme: (theme: unknown) => Theme
 }
 
-/** API для агентов: на Mac — AgentApiController, на телефоне — заглушка «выключено» (D57). */
+/** Agent API: on the Mac — AgentApiController, on the phone — an "off" stub (D57). */
 export type AgentApi = Pick<AgentApiController, 'state' | 'update' | 'regenerateToken'>
 
-/** Файлы импорта, экспорта и полной копии: на Mac — диалоги macOS, на телефоне — своя реализация (D57). */
+/** Import, export and full-backup files: on the Mac — macOS dialogs, on the phone — its own implementation (D57). */
 export type Files = Pick<FileTransfer, 'open' | 'exportDictionary' | 'backup' | 'restore'>
 
-/** Автокопия для Settings: состояние, переключатель и папка в Finder (D51). */
+/** Automatic backup for Settings: state, switch and the folder in Finder (D51). */
 export interface Backups {
   state: () => Promise<AutoBackupState>
   setEnabled: (enabled: unknown) => Promise<AutoBackupState>

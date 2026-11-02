@@ -6,9 +6,9 @@ import type { Clock } from './scheduler'
 import { localDate, startOfLocalDay } from './stats'
 import { spaceIdSchema } from './validation'
 
-/** Сколько новых слов в день по умолчанию (D48). */
+/** Default number of new words per day (D48). */
 export const DEFAULT_NEW_PER_DAY = 10
-/** «Learn 5 more today»: на сколько разово увеличивается лимит сегодня. */
+/** "Learn 5 more today": how much today's limit is raised once. */
 export const EXTRA_NEW_STEP = 5
 export const MAX_NEW_PER_DAY = 500
 
@@ -19,9 +19,9 @@ const newPerDaySchema = z
   .max(MAX_NEW_PER_DAY, 'Use a number from 0 to 500')
 
 /**
- * Лимит новых слов в день (MVP-7, D48). Ограничивает только начало знакомства: повторения не ограничены.
- * Считаются знакомства за сегодня по местному времени и слова, знакомство с которыми начато, но отложено
- * («Not yet»), — они уже показаны и не должны пропадать посреди знакомства. Хранится в таблице settings.
+ * Daily new-word limit (MVP-7, D48). It limits only starting a meeting: reviews are unlimited.
+ * Counted are today's meetings in local time and words whose meeting started but was postponed
+ * ("Not yet") — they were already shown and must not disappear mid-meeting. Stored in the settings table.
  */
 export class StudyLimits {
   constructor(
@@ -50,7 +50,7 @@ export class StudyLimits {
     return this.today(id)
   }
 
-  /** Разовое увеличение действует только в тот день, когда его попросили. */
+  /** A one-off increase applies only on the day it was asked for. */
   private extraToday(spaceId: SpaceId): number {
     const raw = this.read(`study.extraNew.${spaceId}`)
     if (!raw) return 0

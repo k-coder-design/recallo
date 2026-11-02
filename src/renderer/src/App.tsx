@@ -19,14 +19,14 @@ export function App() {
   const [page, setPage] = usePersistentState<Page>('page', 'study', PAGES)
   const [counts, setCounts] = useState<StudyCounts | null>(null)
   const [error, setError] = useState<string | null>(null)
-  /** Идёт сессия Study: на телефоне шапка и нижние вкладки прячутся, остаются карточка и ответ (W2). */
+  /** A Study session is running: on the phone the header and bottom tabs hide, leaving the card and the answer (W2). */
   const [inSession, setInSession] = useState(false)
 
   useEffect(() => {
     call('spaces.list')
       .then(setSpaces)
       .catch((e: unknown) => setError(errorMessage(e)))
-    // Тема из настройки в базе (D58); при ошибке остаётся тема, применённая при запуске.
+    // The theme from the setting in the database (D58); on error the theme applied at startup stays.
     call('settings.theme')
       .then(applyTheme)
       .catch(() => undefined)
@@ -43,7 +43,7 @@ export function App() {
     refreshCounts()
   }, [refreshCounts])
 
-  /** Study присылает счётчики, которые уже пришли вместе с карточкой, — тогда запрос не нужен. */
+  /** Study sends counters that already came with the card — then no request is needed. */
   const onStudyProgress = useCallback(
     (known?: StudyCounts) => (known ? setCounts(known) : refreshCounts()),
     [refreshCounts]
@@ -60,7 +60,7 @@ export function App() {
       )}
     </button>
   )
-  // На Mac вкладки — в шапке, на телефоне — внизу под большим пальцем (W2).
+  // On the Mac tabs are in the header, on the phone at the bottom under the thumb (W2).
   const nav = (
     <nav className={IS_PHONE ? 'nav tabbar' : 'nav'} aria-label="Sections">
       {tab('study', 'Study')}
@@ -101,7 +101,7 @@ export function App() {
 
       <main className="content">
         {page === 'study' ? (
-          // key: при смене языка сессия начинается заново, прогресс уже сохранён (LANG-04).
+          // key: switching the language restarts the session; progress is already saved (LANG-04).
           <StudyPage
             key={spaceId}
             spaceId={spaceId}
@@ -123,7 +123,7 @@ export function App() {
   )
 }
 
-/** Значки нижних вкладок телефона: волна, стопка карточек, столбики, ползунки. */
+/** Phone bottom tab icons: a wave, a stack of cards, bars, sliders. */
 function TabIcon({ page }: { page: Page }) {
   const paths: Record<Page, string[]> = {
     study: ['M2 14c3 0 3-5 6-5s3 5 6 5 3-5 6-5 2 3 2 3', 'M2 19c3 0 3-3 6-3s3 3 6 3 3-3 6-3 2 2 2 2'],

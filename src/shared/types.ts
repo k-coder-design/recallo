@@ -3,14 +3,14 @@ export type SpaceId = 'en' | 'es'
 export interface Space {
   id: SpaceId
   name: string
-  /** Язык озвучивания и (в MVP-5) оценки произношения — всегда язык пространства (LANG-06). */
+  /** Language for speech and (in MVP-5) pronunciation scoring — always the space's language (LANG-06). */
   ttsLang: string
 }
 
 export interface Example {
   text: string
   translation: string | null
-  /** Явно заданные фрагменты примера, которые нужно скрыть (изменённые формы, CARD-09). */
+  /** Explicit example fragments to hide (changed word forms, CARD-09). */
   maskFragments: string[]
 }
 
@@ -22,26 +22,26 @@ export interface CardProgress {
   reps: number
   lapses: number
   lastReview: string | null
-  /** Когда пройдено знакомство с новой карточкой; null — ещё не пройдено (D21). */
+  /** When the new card's first meeting happened; null — not yet (D21). */
   introducedAt: string | null
 }
 
-/** intro — знакомство: слово → значение; recall — вспоминание: значение → слово. */
+/** intro — first meeting: word → meaning; recall — recall: meaning → word. */
 export type StudyMode = 'intro' | 'recall'
 
 export interface Card {
   id: string
   spaceId: SpaceId
-  /** Набор карточки; null — «без набора» (SET-05). */
+  /** The card's set; null — "no set" (SET-05). */
   setId: string | null
   term: string
-  /** IPA без косых черт; null — построить автоматически не удалось. */
+  /** IPA without slashes; null — could not be built automatically. */
   transcription: string | null
-  /** Второй вариант произношения (для испанского — Испания, D44); у английского всегда null. */
+  /** Second pronunciation (for Spanish — Spain, D44); always null for English. */
   transcriptionAlt: string | null
-  /** Эмодзи-ассоциация; null — нет. */
+  /** Emoji association; null — none. */
   emoji: string | null
-  /** true — подобрано автоматически, false — выбрано пользователем. */
+  /** true — picked automatically, false — chosen by the user. */
   emojiAuto: boolean
   meaning: string
   examples: Example[]
@@ -61,73 +61,73 @@ export interface CardCreateInput {
   spaceId: SpaceId
   setId?: string | null
   term: string
-  /** Пусто — заполнится автоматически. */
+  /** Empty — filled in automatically. */
   transcription?: string | null
-  /** Второй вариант произношения; пусто — заполнится автоматически (только для испанского). */
+  /** Second pronunciation; empty — filled in automatically (Spanish only). */
   transcriptionAlt?: string | null
-  /** Не передано — подобрать автоматически; null или пустая строка — без эмодзи. */
+  /** Not passed — pick automatically; null or an empty string — no emoji. */
   emoji?: string | null
   meaning: string
   examples?: ExampleInput[]
 }
 
 export interface CardUpdateInput {
-  /** Версия, которую видел клиент; несовпадение даёт CONFLICT (API-15). */
+  /** Version the client saw; a mismatch gives CONFLICT (API-15). */
   version: number
-  /** Перенос в другой набор или «без набора» (null); прогресс сохраняется (SET-07). */
+  /** Move to another set or to "no set" (null); progress is kept (SET-07). */
   setId?: string | null
   term?: string
-  /** Пусто — построить заново автоматически. Не передано — сохранится, но при смене слова построится заново. */
+  /** Empty — rebuild automatically. Not passed — kept, but rebuilt when the word changes. */
   transcription?: string | null
-  /** То же для второго варианта произношения. */
+  /** Same for the second pronunciation. */
   transcriptionAlt?: string | null
-  /** Передано — выбор пользователя (null — без эмодзи). Не передано — автоподбор обновится при смене слова или значения. */
+  /** Passed — the user's choice (null — no emoji). Not passed — the automatic pick updates when the word or meaning changes. */
   emoji?: string | null
   meaning?: string
   examples?: ExampleInput[]
-  /** Явный сброс прогресса (CARD-05). Без него прогресс сохраняется (API-16). */
+  /** Explicit progress reset (CARD-05). Without it progress is kept (API-16). */
   resetProgress?: boolean
 }
 
-/** Результат попытки: «Вспомнил» / «Не вспомнил». */
+/** Result of an attempt: "Remembered" / "Forgot". */
 export type Grade = 'remembered' | 'forgot'
 
 export interface StudyCounts {
-  /** Карточки, готовые к вспоминанию: наступившие повторения и знакомые новые. */
+  /** Cards ready for recall: due reviews and introduced new cards. */
   due: number
-  /** Новые карточки, с которыми можно познакомиться сегодня — с учётом дневного лимита (D48). */
+  /** New cards that can be met today, within the daily limit (D48). */
   new: number
-  /** Новые карточки области сверх сегодняшнего лимита. */
+  /** New cards in scope beyond today's limit. */
   newWaiting: number
-  /** Дневной лимит новых слов языка. */
+  /** Daily limit of new words for the language. */
   newToday: NewWordsToday
 }
 
-/** Лимит новых слов на сегодня для языка (MVP-7, D48). */
+/** Today's new-word limit for a language (MVP-7, D48). */
 export type { AnswerCheck, AnswerVerdict, DiffPart } from './answerCheck'
 
-/** Автоматическая резервная копия (MVP-9, D51). */
+/** Automatic backup (MVP-9, D51). */
 export interface AutoBackupState {
   enabled: boolean
   lastAt: string | null
   lastError: string | null
-  /** Папка с копиями. */
+  /** Backup folder. */
   folder: string
-  /** Сколько автокопий сейчас хранится. */
+  /** How many automatic backups are kept right now. */
   count: number
 }
 
-/** Тема оформления: system — как в macOS (D49). */
+/** Appearance theme: system — follows macOS (D49). */
 export type Theme = 'system' | 'light' | 'dark'
 
 export interface NewWordsToday {
-  /** Слов в день по настройке; 0 — только повторения. */
+  /** Words per day from the setting; 0 — reviews only. */
   limit: number
-  /** Разовое увеличение на сегодня («Learn 5 more today»). */
+  /** One-off increase for today ("Learn 5 more today"). */
   extra: number
-  /** Знакомства, начатые сегодня (включая отложенные «Not yet»). */
+  /** Meetings started today (including postponed "Not yet"). */
   started: number
-  /** Сколько ещё новых слов можно начать сегодня. */
+  /** How many more new words can be started today. */
   remaining: number
 }
 
@@ -139,11 +139,11 @@ export interface Segment {
 export interface CardFront {
   meaning: string
   emoji: string | null
-  /** Примеры, где скрытые фрагменты имеют пустой text — исходного слова на лицевой стороне нет (CARD-10). */
+  /** Examples where hidden fragments have empty text — the original word is not on the front (CARD-10). */
   examples: Segment[][]
 }
 
-/** Вариант произношения на карточке: транскрипция и язык голоса для озвучки (D44). */
+/** A pronunciation on a card: transcription and the voice language for speech (D44). */
 export interface Pronunciation {
   label: string
   flag: string
@@ -151,7 +151,7 @@ export interface Pronunciation {
   transcription: string | null
 }
 
-/** Подсказка редактору: какие транскрипции построит приложение. */
+/** Hint for the editor: which transcriptions the app will build. */
 export interface TranscriptionSuggestion {
   transcription: string | null
   transcriptionAlt: string | null
@@ -159,27 +159,27 @@ export interface TranscriptionSuggestion {
 
 export interface CardBack {
   term: string
-  /** Сколько раз слово забывали при вспоминании — для подсказки уточнить определение (SRS-12). */
+  /** How many times the word was forgotten in recall — for the "clarify the definition" hint (SRS-12). */
   forgotCount: number
   transcription: string | null
   emoji: string | null
   meaning: string
   ttsLang: string
-  /** Все варианты произношения, основной первым (D44). */
+  /** All pronunciations, the primary first (D44). */
   pronunciations: Pronunciation[]
   examples: Array<{ segments: Segment[]; translation: string | null }>
 }
 
 export interface NextOptions {
-  /** Область обучения: все карточки языка, набор или «без набора» (LEARN-01). */
+  /** Study scope: all cards of the language, a set, or "no set" (LEARN-01). */
   scope?: SetScope
-  /** Последняя показанная карточка: при наличии других она не показывается подряд (SRS-10). */
+  /** The last shown card: if there are others, it is not shown twice in a row (SRS-10). */
   avoidCardId?: string
-  /** Показать ближайшую карточку из короткого повторения, не дожидаясь её срока (SRS-11). */
+  /** Show the nearest short-interval card without waiting for it to be due (SRS-11). */
   allowEarly?: boolean
   /**
-   * Предыдущая карточка была знакомством: новые не идут подряд, если есть чем их перемежать (D56).
-   * Без флага порядок прежний — так агенты и тесты могут знакомиться со всеми новыми подряд.
+   * The previous card was a first meeting: new cards don't come back to back if there is something to mix in (D56).
+   * Without the flag the order is unchanged — so agents and tests can meet all new cards in a row.
    */
   afterNew?: boolean
 }
@@ -195,7 +195,7 @@ export type NextCard =
     }
   | {
       kind: 'card'
-      /** Первая встреча со словом (D53): всё содержимое сразу, без самооценки. */
+      /** First meeting with a word (D53): all content at once, no self-grading. */
       mode: 'intro'
       presentationId: string
       cardId: string
@@ -212,7 +212,7 @@ export interface GradeResult {
   grade: Grade
   nextDue: string
   state: ProgressState
-  /** true, если оценка уже была записана раньше и повтор её не применил (LEARN-10). */
+  /** true if the grade was already recorded earlier and the repeat did not apply it (LEARN-10). */
   duplicate: boolean
 }
 
@@ -232,15 +232,15 @@ export interface AppError {
 
 export type Result<T> = { ok: true; data: T } | { ok: false; error: AppError }
 
-/** Стадия слова для статистики. Learned — интервал повторения от 3 недель; это не «выучено навсегда». */
+/** A word's stage for statistics. Learned — review interval of 3 weeks or more; not "learned forever". */
 export type WordStage = 'new' | 'introduced' | 'learning' | 'familiar' | 'learned'
 
 export interface DayActivity {
-  /** Локальная дата YYYY-MM-DD. */
+  /** Local date YYYY-MM-DD. */
   date: string
   remembered: number
   forgot: number
-  /** Слова, с которыми познакомились («Got it»). */
+  /** Words met ("Got it"). */
   introduced: number
 }
 
@@ -248,7 +248,7 @@ export interface HardWord {
   cardId: string
   term: string
   meaning: string
-  /** Сколько раз ответили «Forgot» при вспоминании. */
+  /** How many times "Forgot" was answered in recall. */
   forgotCount: number
 }
 
@@ -256,13 +256,13 @@ export interface StatsOverview {
   total: number
   stages: Record<WordStage, number>
   today: { remembered: number; forgot: number; introduced: number }
-  /** Доля «Remembered» среди ответов вспоминания за 30 дней; null — ответов не было. */
+  /** Share of "Remembered" among recall answers over 30 days; null — no answers. */
   retention30d: number | null
-  /** Дней подряд с занятиями, включая сегодня (или до вчера, если сегодня ещё не занимались). */
+  /** Consecutive days with study, including today (or up to yesterday if not studied today yet). */
   streakDays: number
-  /** Сколько карточек станет готово к вспоминанию завтра. */
+  /** How many cards will be ready for recall tomorrow. */
   dueTomorrow: number
-  /** Последние 14 дней, от старых к новым. */
+  /** The last 14 days, oldest first. */
   activity: DayActivity[]
   hardest: HardWord[]
   swell: Swell
@@ -270,29 +270,29 @@ export interface StatsOverview {
 
 export type SwellLabel = 'Flat' | 'Knee-high' | 'Waist-high' | 'Chest-high' | 'Head-high' | 'Overhead'
 
-/** «Today's swell» (D40): высота волны в метрах — насколько стабильно идёт обучение. */
+/** "Today's swell" (D40): wave height in meters — how steadily learning is going. */
 export interface Swell {
   height: number
   label: SwellLabel
-  /** Дни с занятиями за последние windowDays дней, включая сегодня. */
+  /** Days with study in the last windowDays days, including today. */
   activeDays: number
   windowDays: number
-  /** Точность вспоминания за 14 дней; null — пока меньше 5 ответов. */
+  /** Recall accuracy over 14 days; null — fewer than 5 answers so far. */
   accuracy: number | null
-  /** Доля слов на стадиях Familiar и Learned среди начатых. */
+  /** Share of words in the Familiar and Learned stages among started ones. */
   mastery: number
-  /** Какой станет волна после занятия сегодня или завтра. */
+  /** What the wave will be after studying today or tomorrow. */
   next: { when: 'today' | 'tomorrow'; height: number }
 }
 
 export interface EmojiSuggestions {
-  /** Что выберет автоподбор (только уверенная ассоциация); null — ничего. */
+  /** What the automatic pick chooses (confident association only); null — nothing. */
   best: string | null
-  /** Варианты для выбора вручную, лучший первым. */
+  /** Options to choose manually, best first. */
   options: string[]
 }
 
-/** Набор карточек одного языкового пространства (SET-01, SET-02). */
+/** A card set within one language space (SET-01, SET-02). */
 export interface CardSet {
   id: string
   spaceId: SpaceId
@@ -301,7 +301,7 @@ export interface CardSet {
   version: number
   createdAt: string
   updatedAt: string
-  /** Сколько карточек в наборе. */
+  /** How many cards are in the set. */
   cardCount: number
 }
 
@@ -317,15 +317,15 @@ export interface SetUpdateInput {
   description?: string | null
 }
 
-/** Что делать с карточками при удалении набора — задаётся всегда явно (SET-09, SET-11). */
+/** What to do with cards when a set is deleted — always chosen explicitly (SET-09, SET-11). */
 export type SetDeletePolicy = 'keep-cards' | 'delete-cards'
 
-/** Область обучения и фильтр списка: все карточки языка, один набор или «без набора». */
+/** Study scope and list filter: all cards of the language, one set, or "no set". */
 export type SetScope = { kind: 'all' } | { kind: 'set'; setId: string } | { kind: 'none' }
 
 export interface CardQuery {
   scope?: SetScope
-  /** Поиск по слову, значению, примерам и названию набора, лучшие совпадения первыми (API-02, D54). */
+  /** Search by word, meaning, examples and set name, best matches first (API-02, D54). */
   search?: string
 }
 
@@ -336,26 +336,26 @@ export interface DuplicateCard {
   setName: string | null
 }
 
-/** Результат отмены: оценка снята, карточка показывается снова. */
+/** Undo result: the grade is removed, the card is shown again. */
 export interface UndoResult {
   undone: GradeResult
   next: NextCard
 }
 
-/** Состояние API для агентов — для экрана Settings (MVP-3). */
+/** Agent API state — for the Settings screen (MVP-3). */
 export interface AgentApiState {
   enabled: boolean
   port: number
   token: string
   status: 'running' | 'stopped' | 'error'
-  /** Причина ошибки запуска, например «порт занят». */
+  /** Why it failed to start, e.g. "port in use". */
   error: string | null
-  /** Адрес API, пока он работает. */
+  /** API address while it is running. */
   url: string | null
   connection: {
-    /** Команда для Claude Code (терминал). */
+    /** Command for Claude Code (terminal). */
     claudeCode: string
-    /** Фрагмент claude_desktop_config.json для Claude Desktop. */
+    /** claude_desktop_config.json fragment for Claude Desktop. */
     claudeDesktop: string
     claudeDesktopConfigPath: string
   }
@@ -366,10 +366,10 @@ export interface AgentApiUpdate {
   port?: number
 }
 
-/** Форматы импорта (MVP-4). */
+/** Import formats (MVP-4). */
 export type ImportFormat = 'recallo-json' | 'recallo-csv' | 'duocards' | 'quizlet'
 
-/** Куда класть импортированные карточки. */
+/** Where to put imported cards. */
 export type ImportDestination =
   | { kind: 'file-sets' }
   | { kind: 'set'; setId: string }
@@ -378,12 +378,12 @@ export type ImportDestination =
 
 export interface ImportOptions {
   spaceId: SpaceId
-  /** Не задан — определяется по содержимому файла. */
+  /** Not set — detected from the file content. */
   format?: ImportFormat
-  /** Поменять местами слово и значение (для Quizlet и двухколоночных файлов). */
+  /** Swap word and meaning (for Quizlet and two-column files). */
   swap?: boolean
   destination: ImportDestination
-  /** Добавлять и слова, которые уже есть (по умолчанию пропускаются). */
+  /** Also add words that already exist (skipped by default). */
   includeDuplicates?: boolean
 }
 
@@ -399,7 +399,7 @@ export interface ImportRow {
 
 export interface ImportPreview {
   format: ImportFormat
-  /** В файле есть свои наборы (форматы Recallo). */
+  /** The file has its own sets (Recallo formats). */
   hasSets: boolean
   rows: ImportRow[]
   summary: { new: number; duplicates: number; errors: number }

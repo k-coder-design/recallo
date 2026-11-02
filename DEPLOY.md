@@ -1,36 +1,36 @@
-# Установка Recallo на другой Mac
+# Installing Recallo on another Mac
 
-Инструкция для человека и для ИИ-агента: каждый шаг — готовая команда, без ручных правок файлов. Где нужен интерфейс приложения, это сказано явно.
+A guide for a person and for an AI agent: every step is a ready command, with no manual file edits. Where the app's interface is needed, it says so explicitly.
 
-## Требования
+## Requirements
 
-- macOS 13 Ventura или новее.
-- Apple Silicon (M1 и новее) или Intel. Проверить: `uname -m` → `arm64` — Apple Silicon, `x86_64` — Intel.
-- Для установки из исходников дополнительно: Node.js 22+ и доступ в интернет (npm скачивает зависимости и Electron).
+- macOS 13 Ventura or newer.
+- Apple Silicon (M1 or newer) or Intel. Check: `uname -m` → `arm64` — Apple Silicon, `x86_64` — Intel.
+- For installing from source, also: Node.js 22+ and internet access (npm downloads dependencies and Electron).
 
-## Комплект
+## The kit
 
-Собирается на Mac, где Recallo уже работает: `npm run kit:mac` → папка `dist/kit/Recallo-<версия>/` и она же одним файлом `dist/kit/Recallo-<версия>.zip` — его и отправляйте. Получатель распаковывает архив двойным кликом и начинает с `START_HERE.md`.
+It is built on a Mac where Recallo already works: `npm run kit:mac` → the folder `dist/kit/Recallo-<version>/` and the same as one file `dist/kit/Recallo-<version>.zip` — that is what you send. The recipient unpacks the archive with a double click and starts with `START_HERE.md`.
 
-| Файл | Зачем |
+| File | Purpose |
 | --- | --- |
-| `Recallo-<версия>-arm64.dmg` | Готовое приложение для Apple Silicon |
-| `Recallo-<версия>-x64.dmg` | Готовое приложение для Intel |
-| `Recallo-<версия>-source.zip` | Исходный код — собрать приложение на месте |
-| `upgrade-mac.sh` | Обновление уже установленного Recallo с копией базы — см. [UPGRADE.md](UPGRADE.md) |
-| `START_HERE.md` | С чего начать: новая установка, обновление или через агента |
-| `DEPLOY.md` | Эта инструкция |
-| `UPGRADE.md` | Обновление со старых версий: что изменилось, шаги, проверка, откат |
-| `AGENT_PROMPT.md` | Готовые промпты для ИИ-агента: новая установка и обновление |
-| `SHA256SUMS.txt` | Контрольные суммы: `shasum -a 256 -c SHA256SUMS.txt` |
+| `Recallo-<version>-arm64.dmg` | The ready app for Apple Silicon |
+| `Recallo-<version>-x64.dmg` | The ready app for Intel |
+| `Recallo-<version>-source.zip` | Source code — build the app on site |
+| `upgrade-mac.sh` | Upgrade an installed Recallo with a database copy — see [UPGRADE.md](UPGRADE.md) |
+| `START_HERE.md` | Where to start: a new install, an upgrade, or through an agent |
+| `DEPLOY.md` | This guide |
+| `UPGRADE.md` | Upgrading from older versions: what changed, steps, checks, rollback |
+| `AGENT_PROMPT.md` | Ready prompts for an AI agent: new install and upgrade |
+| `SHA256SUMS.txt` | Checksums: `shasum -a 256 -c SHA256SUMS.txt` |
 
-Слова и прогресс в комплект не входят — их переносят отдельно (раздел «Перенос слов и прогресса»).
+Words and progress are not in the kit — they are moved separately ("Moving words and progress").
 
-## Вариант A. Готовое приложение из DMG (рекомендуется)
+## Option A. The ready app from a DMG (recommended)
 
-Вручную: откройте DMG под свою архитектуру и перетащите Recallo в «Программы».
+By hand: open the DMG for your architecture and drag Recallo into Applications.
 
-Командами (агент выполняет из папки с комплектом). Если Recallo уже установлен и открыт, сначала закройте его — агенту нужно согласие пользователя: `osascript -e 'quit app "Recallo"'`. Данные при замене приложения сохраняются.
+With commands (the agent runs them from the kit folder). If Recallo is already installed and open, close it first — the agent needs the user's consent: `osascript -e 'quit app "Recallo"'`. Data is kept when the app is replaced.
 
 ```bash
 ARCH=$(uname -m | sed 's/x86_64/x64/')
@@ -42,21 +42,21 @@ ditto "$MOUNT/Recallo.app" /Applications/Recallo.app
 hdiutil detach "$MOUNT"
 ```
 
-Первый запуск. Приложение подписано локально и не нотаризовано Apple, поэтому macOS спросит разрешение:
+First launch. The app is signed locally and not notarized by Apple, so macOS asks for permission:
 
-- правый клик по Recallo в «Программах» → «Открыть» → «Открыть»;
-- или «Системные настройки → Конфиденциальность и безопасность» → «Всё равно открыть».
+- right-click Recallo in Applications → Open → Open;
+- or System Settings → Privacy & Security → Open Anyway.
 
-Если macOS пишет, что приложение «повреждено», — это метка «скачано из интернета» на неподписанном приложении. Снимите её (только для Recallo из этого комплекта):
+If macOS says the app is "damaged", that is the "downloaded from the internet" flag on an unsigned app. Remove it (only for Recallo from this kit):
 
 ```bash
 xattr -dr com.apple.quarantine /Applications/Recallo.app
 ```
 
-## Вариант B. Сборка из исходников
+## Option B. Building from source
 
-1. Установите Node.js 22+: с https://nodejs.org или `brew install node`. Проверка: `node -v`.
-2. Распакуйте архив и запустите установку — скрипт проверит окружение, поставит зависимости, прогонит проверки и тесты, соберёт приложение под архитектуру этого Mac и скопирует его в «Программы»:
+1. Install Node.js 22+: from https://nodejs.org or `brew install node`. Check: `node -v`.
+2. Unpack the archive and run the install — the script checks the environment, installs dependencies, runs checks and tests, builds the app for this Mac's architecture and copies it into Applications:
 
 ```bash
 unzip Recallo-*-source.zip
@@ -64,65 +64,65 @@ cd Recallo-*-source
 bash scripts/setup-mac.sh
 ```
 
-Параметры: `--no-install` — только собрать (`dist/mac*/Recallo.app`), не копировать в «Программы»; `--skip-tests` — без проверок, быстрее. Если Recallo уже открыт, установка остановится с просьбой его закрыть — данные при переустановке не теряются. Проверить заранее: `node scripts/mac-app.mjs running` (код выхода 0 — открыт). Процессы MCP-сервера, которые запускает Claude, открытым приложением не считаются.
+Options: `--no-install` — only build (`dist/mac*/Recallo.app`), do not copy into Applications; `--skip-tests` — without checks, faster. If Recallo is already open, the install stops and asks you to close it — no data is lost on reinstall. Check beforehand: `node scripts/mac-app.mjs running` (exit code 0 — open). MCP server processes started by Claude do not count as the open app.
 
-Собранное на этом же Mac приложение не помечено как скачанное, поэтому macOS не спрашивает разрешения при запуске.
+An app built on the same Mac is not marked as downloaded, so macOS does not ask for permission at launch.
 
-Если `npm ci` не смог собрать модуль базы данных (`better-sqlite3`), установите инструменты разработчика и повторите: `xcode-select --install`.
+If `npm ci` could not build the database module (`better-sqlite3`), install the developer tools and try again: `xcode-select --install`.
 
-## Проверка установки
+## Checking the install
 
 ```bash
 defaults read /Applications/Recallo.app/Contents/Info.plist CFBundleShortVersionString
 open -a Recallo
 ```
 
-Первая команда печатает версию. После запуска открывается окно Recallo; данные создаются в `~/Library/Application Support/Recallo/` (база `recallo.sqlite`, автокопии в `backups/`).
+The first command prints the version. After launch the Recallo window opens; data is created in `~/Library/Application Support/Recallo/` (the database `recallo.sqlite`, automatic backups in `backups/`).
 
-## Перенос слов и прогресса
+## Moving words and progress
 
-Способ 1 — через интерфейс (так делает человек):
+Way 1 — through the interface (how a person does it):
 
-1. На старом Mac: Recallo → Settings → Backup → «Create backup…» (или возьмите последний файл из `~/Library/Application Support/Recallo/backups/` — автокопия делается каждый день).
-2. Перенесите файл `Recallo backup <дата>.json` на новый Mac.
-3. На новом Mac: Settings → Backup → «Restore from backup…» → выберите файл → «Replace and restore».
+1. On the old Mac: Recallo → Settings → Backup → "Create backup…" (or take the latest file from `~/Library/Application Support/Recallo/backups/` — an automatic backup is made every day).
+2. Move the file `Recallo backup <date>.json` to the new Mac.
+3. On the new Mac: Settings → Backup → "Restore from backup…" → pick the file → "Replace and restore".
 
-Способ 2 — копированием базы (подходит агенту, интерфейс не нужен). Recallo должен быть закрыт на обоих Mac (⌘Q):
+Way 2 — by copying the database (suits an agent, no interface needed). Recallo must be closed on both Macs (⌘Q):
 
 ```bash
-# На новом Mac, если файл recallo.sqlite со старого Mac лежит в текущей папке:
+# On the new Mac, if the recallo.sqlite file from the old Mac is in the current folder:
 mkdir -p ~/Library/Application\ Support/Recallo
 cp recallo.sqlite ~/Library/Application\ Support/Recallo/recallo.sqlite
 ```
 
-Если Recallo на новом Mac уже запускался, его текущая база при этом заменяется — сначала сохраните её копию. На старом Mac безопасная копия открытой базы: `sqlite3 ~/Library/Application\ Support/Recallo/recallo.sqlite ".backup recallo.sqlite"`. Более новая версия Recallo открывает базу старой и обновляет её сама.
+If Recallo has already run on the new Mac, its current database is replaced — save a copy of it first. On the old Mac, a safe copy of an open database: `sqlite3 ~/Library/Application\ Support/Recallo/recallo.sqlite ".backup recallo.sqlite"`. A newer Recallo version opens an older database and upgrades it by itself.
 
-## Подключение Claude (MCP)
+## Connecting Claude (MCP)
 
-1. В Recallo: Settings → Agent API → включить (по умолчанию выключено).
-2. В Terminal (Claude Code) один раз:
+1. In Recallo: Settings → Agent API → turn on (off by default).
+2. In Terminal (Claude Code), once:
 
 ```bash
 claude mcp add --scope user recallo -e ELECTRON_RUN_AS_NODE=1 -- "/Applications/Recallo.app/Contents/MacOS/Recallo" "/Applications/Recallo.app/Contents/Resources/app.asar/out/mcp/index.cjs"
 ```
 
-3. Проверка: `claude mcp list` → `recallo … ✔ Connected` (Recallo должен быть открыт). Для Claude Desktop готовый фрагмент конфигурации — в Settings → Agent API.
+3. Check: `claude mcp list` → `recallo … ✔ Connected` (Recallo must be open). For Claude Desktop the ready configuration snippet is in Settings → Agent API.
 
-Агент работает с карточками, только пока Recallo открыт и Agent API включён; токен хранится у Recallo, в настройки Claude его копировать не нужно.
+The agent works with cards only while Recallo is open and the Agent API is on; the token is kept by Recallo, so there is no need to copy it into Claude's settings.
 
-## Голоса для озвучки
+## Voices for speech
 
-Озвучка использует голоса macOS. Для аргентинского произношения установите голос: «Системные настройки → Универсальный доступ → Устная речь → Системный голос → Управлять голосами…» → Spanish → Argentina (например, Diego Enhanced), затем перезапустите Recallo. Что звучит для каждого варианта — в Settings → Voices.
+Speech uses macOS voices. For the Argentine pronunciation install a voice: System Settings → Accessibility → Spoken Content → System voice → Manage Voices… → Spanish → Argentina (for example, Diego Enhanced), then restart Recallo. What plays for each variant is in Settings → Voices.
 
-## Обновление и удаление
+## Upgrading and removing
 
-- Обновление: закройте Recallo и запустите `bash upgrade-mac.sh` из папки комплекта — он сделает копию базы и заменит приложение. Подробно, с откатом и списком изменений, — [UPGRADE.md](UPGRADE.md). Вручную: новый DMG поверх (Вариант A) или `bash scripts/setup-mac.sh` в новой версии исходников (Вариант B). Данные сохраняются.
-- Удаление приложения: `rm -rf /Applications/Recallo.app`. Данные удаляются отдельно и безвозвратно: `~/Library/Application Support/Recallo/` — сначала сделайте копию.
+- Upgrade: close Recallo and run `bash upgrade-mac.sh` from the kit folder — it makes a database copy and replaces the app. Details, with rollback and the list of changes — [UPGRADE.md](UPGRADE.md). By hand: the new DMG on top (Option A) or `bash scripts/setup-mac.sh` in the new source version (Option B). Data is kept.
+- Removing the app: `rm -rf /Applications/Recallo.app`. Data is removed separately and permanently: `~/Library/Application Support/Recallo/` — make a copy first.
 
-## Сборка комплекта (на исходном Mac)
+## Building the kit (on the source Mac)
 
 ```bash
 npm run kit:mac
 ```
 
-Собирает в `dist/kit/Recallo-<версия>/` оба DMG, архив исходников без `node_modules` и служебных папок, скрипт обновления и инструкции, считает контрольные суммы и упаковывает папку в `dist/kit/Recallo-<версия>.zip`.
+Builds into `dist/kit/Recallo-<version>/` both DMGs, a source archive without `node_modules` and service folders, the upgrade script and the instructions, computes checksums and packs the folder into `dist/kit/Recallo-<version>.zip`.

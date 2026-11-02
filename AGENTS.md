@@ -1,24 +1,24 @@
-# Recallo — заметки для ИИ-агентов
+# Recallo — notes for AI agents
 
-Десктопное приложение для macOS (Electron + React + SQLite) для запоминания английских и испанских слов. Обзор — [README.md](README.md), фазы и решения — [ROADMAP.md](ROADMAP.md).
+A macOS desktop app (Electron + React + SQLite) for remembering English and Spanish words. Overview — [README.md](README.md), phases and decisions — [ROADMAP.md](ROADMAP.md).
 
-## Установить на этот Mac
+## Install on this Mac
 
-Следуйте [DEPLOY.md](DEPLOY.md). Коротко: из DMG — раздел «Вариант A»; из исходников — `bash scripts/setup-mac.sh` (нужен Node.js 22+). Проверка: `defaults read /Applications/Recallo.app/Contents/Info.plist CFBundleShortVersionString`.
+Follow [DEPLOY.md](DEPLOY.md). In short: from a DMG — "Option A"; from source — `bash scripts/setup-mac.sh` (needs Node.js 22+). Check: `defaults read /Applications/Recallo.app/Contents/Info.plist CFBundleShortVersionString`.
 
-## Команды
+## Commands
 
-- `npm ci` — зависимости (модуль `better-sqlite3` пересобирается под Electron автоматически).
-- `npm run typecheck`, `npm test` — проверки; тесты идут через Electron в режиме Node. Тесты ядра идут на двух базах: проект `mac` (better-sqlite3) и `phone` (SQLite WebAssembly).
-- `npm run build:mobile` / `npm run dev:mobile` — Recallo: Mobile для iPhone (D57, этапы W0–W5 в ROADMAP.md). Ядро обращается к базе только через интерфейс `Db` из `src/main/db/types.ts` — не используйте в домене API better-sqlite3 сверх него.
-- `npm run dev` — запуск для разработки; отдельная папка данных: `RECALLO_USER_DATA=/tmp/recallo npm run dev`.
-- `npm run install:mac` — собрать и установить в /Applications. Recallo должен быть закрыт: проверка `node scripts/mac-app.mjs running` (код 0 — открыт); если открыт, установка откажется сама.
-- `npm run kit:mac` — комплект для другого Mac: папка `dist/kit/Recallo-<версия>/` и её `.zip` для отправки. Обновление установленного Recallo — `upgrade-mac.sh` из комплекта, см. [UPGRADE.md](UPGRADE.md).
+- `npm ci` — dependencies (the `better-sqlite3` module is rebuilt for Electron automatically).
+- `npm run typecheck`, `npm test` — checks; tests run through Electron in Node mode. Core tests run on two databases: the `mac` project (better-sqlite3) and `phone` (SQLite WebAssembly).
+- `npm run build:mobile` / `npm run dev:mobile` — Recallo: Mobile for iPhone (D57, stages W0–W5 in ROADMAP.md). The core reaches the database only through the `Db` interface in `src/main/db/types.ts` — do not use better-sqlite3 APIs beyond it in the domain.
+- `npm run dev` — run for development; a separate data folder: `RECALLO_USER_DATA=/tmp/recallo npm run dev`.
+- `npm run install:mac` — build and install into /Applications. Recallo must be closed: check with `node scripts/mac-app.mjs running` (exit code 0 — open); if it is open, the install refuses by itself.
+- `npm run kit:mac` — a kit for another Mac: the folder `dist/kit/Recallo-<version>/` and its `.zip` for sending. Upgrading an installed Recallo — `upgrade-mac.sh` from the kit, see [UPGRADE.md](UPGRADE.md).
 
-## Правила
+## Rules
 
-- Данные пользователя — `~/Library/Application Support/Recallo/recallo.sqlite`. Перед любым изменением реальных данных сделайте копию: `sqlite3 <база> ".backup <копия>"`. Карточки меняйте через MCP или REST API Recallo, а не SQL — так соблюдаются проверки и не трогается прогресс.
-- Закрывать и переустанавливать запущенное приложение — только с согласия пользователя.
-- Интерфейс приложения всегда на английском; документация и комментарии в коде — на русском.
-- После изменений, заметных пользователю, обновляйте README.md (возможности, версия) и ROADMAP.md (итог фазы, решение Dnn).
-- Бизнес-правила — только в `src/main/domain`; интерфейс, REST API и MCP вызывают один и тот же слой.
+- User data — `~/Library/Application Support/Recallo/recallo.sqlite`. Before any change to real data, make a copy: `sqlite3 <db> ".backup <copy>"`. Change cards through Recallo's MCP or REST API, not SQL — that keeps the checks and does not touch progress.
+- Close and reinstall the running app only with the user's consent.
+- Everything in the repository is in English: the interface, docs, code comments and test names. Cyrillic appears only where the app must handle Russian text (the user's meanings are Russian): test data for Russian search, emoji and import, the Russian stop words, and the user's word sets in `data/sets/`. Mark each such place with an English comment.
+- After user-visible changes, update README.md (features, version) and ROADMAP.md (phase result, decision Dnn).
+- Business rules live only in `src/main/domain`; the interface, the REST API and MCP call the same layer.

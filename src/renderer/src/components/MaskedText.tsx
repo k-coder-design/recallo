@@ -2,7 +2,7 @@ import type { Segment } from '../../../shared/types'
 
 interface Props {
   segments: Segment[]
-  /** reveal: скрытые фрагменты подсвечиваются; иначе вместо них заглушка. */
+  /** reveal: hidden fragments are highlighted; otherwise a placeholder replaces them. */
   mode: 'hide' | 'reveal'
 }
 

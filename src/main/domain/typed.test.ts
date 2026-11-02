@@ -12,10 +12,10 @@ interface LogRow {
 const lastLog = (t: ReturnType<typeof setup>) =>
   t.db.prepare('SELECT grade, typed_answer, auto_verdict, overridden FROM review_log ORDER BY rowid DESC LIMIT 1').get() as LogRow
 
-describe('Режим ввода ответа (MVP-8)', () => {
-  it('проверка раскрывает ответ и предлагает оценку; принятая оценка не считается исправлением', () => {
+describe('Typed answer mode (MVP-8)', () => {
+  it('a check reveals the answer and suggests a grade; an accepted grade does not count as an override', () => {
     const t = setup()
-    t.addCard({ term: 'reckless', meaning: 'безрассудный' })
+    t.addCard({ term: 'reckless', meaning: 'acting without care' })
     t.introduceAll()
     const shown = expectRecall(t.study.next('en'))
     const { back, check } = t.study.check(shown.presentationId, 'Reckless')
@@ -25,9 +25,9 @@ describe('Режим ввода ответа (MVP-8)', () => {
     expect(lastLog(t)).toEqual({ grade: 'remembered', typed_answer: 'Reckless', auto_verdict: 'correct', overridden: 0 })
   })
 
-  it('«I was right»: вердикт «неверно», но пользователь ставит Remembered — в FSRS идёт его оценка', () => {
+  it('"I was right": the verdict is wrong, but the user grades Remembered — FSRS gets their grade', () => {
     const t = setup()
-    const card = t.addCard({ term: 'reckless', meaning: 'безрассудный' })
+    const card = t.addCard({ term: 'reckless', meaning: 'acting without care' })
     t.introduceAll()
     const shown = expectRecall(t.study.next('en'))
     expect(t.study.check(shown.presentationId, 'heedless').check.verdict).toBe('wrong')
@@ -37,9 +37,9 @@ describe('Режим ввода ответа (MVP-8)', () => {
     expect(lastLog(t)).toMatchObject({ auto_verdict: 'wrong', overridden: 1 })
   })
 
-  it('«Count as forgot»: вердикт «верно», но пользователь ставит Forgot', () => {
+  it('"Count as forgot": the verdict is right, but the user grades Forgot', () => {
     const t = setup()
-    t.addCard({ term: 'reckless', meaning: 'безрассудный' })
+    t.addCard({ term: 'reckless', meaning: 'acting without care' })
     t.introduceAll()
     const shown = expectRecall(t.study.next('en'))
     t.study.check(shown.presentationId, 'reckless')
@@ -47,9 +47,9 @@ describe('Режим ввода ответа (MVP-8)', () => {
     expect(lastLog(t)).toMatchObject({ grade: 'forgot', auto_verdict: 'correct', overridden: 1 })
   })
 
-  it('повторная проверка и повторная оценка ничего не меняют', () => {
+  it('a repeated check and a repeated grade change nothing', () => {
     const t = setup()
-    t.addCard({ term: 'reckless', meaning: 'безрассудный' })
+    t.addCard({ term: 'reckless', meaning: 'acting without care' })
     t.introduceAll()
     const shown = expectRecall(t.study.next('en'))
     t.study.check(shown.presentationId, 'careless')
@@ -59,9 +59,9 @@ describe('Режим ввода ответа (MVP-8)', () => {
     expect(t.db.prepare("SELECT COUNT(*) FROM review_log WHERE mode = 'recall'").pluck().get()).toBe(1)
   })
 
-  it('знакомство не проверяется вводом; после обычного раскрытия проверка недоступна', () => {
+  it('a first meeting is not checked by typing; after a normal reveal the check is unavailable', () => {
     const t = setup()
-    t.addCard({ term: 'reckless', meaning: 'безрассудный' })
+    t.addCard({ term: 'reckless', meaning: 'acting without care' })
     const intro = expectIntro(t.study.next('en'))
     expect(toAppError(capture(() => t.study.check(intro.presentationId, 'x'))).code).toBe('VALIDATION')
     t.study.reveal(intro.presentationId)

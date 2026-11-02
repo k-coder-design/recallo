@@ -1,5 +1,5 @@
-// Импорт CSV-экспорта DuoCards в базу Recallo (для тестовых данных до полноценного импорта в MVP-4).
-// Запуск: npm run import:duocards -- <файл.csv> [--space en|es] [--dry-run] [--user-data <папка>]
+// Import a DuoCards CSV export into the Recallo database (for test data before full import in MVP-4).
+// Run: npm run import:duocards -- <file.csv> [--space en|es] [--dry-run] [--user-data <folder>]
 import { readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
@@ -18,14 +18,14 @@ function readArgs(argv: string[]) {
     else if (arg === '--user-data') args.userData = argv[++i] ?? args.userData
     else if (arg) args.file = arg
   }
-  if (!args.file) throw new Error('Укажите путь к CSV-файлу')
-  if (args.space !== 'en' && args.space !== 'es') throw new Error('--space: en или es')
+  if (!args.file) throw new Error('Pass the path to the CSV file')
+  if (args.space !== 'en' && args.space !== 'es') throw new Error('--space: en or es')
   return args
 }
 
 const args = readArgs(process.argv.slice(2))
 const records = parseDuoCardsExport(readFileSync(args.file, 'utf8'), args.space)
-  // Старые карточки первыми — как они появлялись в DuoCards.
+  // Oldest cards first — as they appeared in DuoCards.
   .sort((a, b) => (a.publishedAt ?? '').localeCompare(b.publishedAt ?? ''))
 
 const unmasked: string[] = []
@@ -57,7 +57,7 @@ for (const record of records) {
 }
 db.close()
 
-console.log(`${args.dryRun ? '[dry-run] ' : ''}База: ${args.dryRun ? '(в памяти)' : dbFile}`)
-console.log(`В файле: ${records.length}, добавлено: ${created}, пропущено как дубли: ${skipped}`)
-console.log(`Примеров, где выражение не нашлось автоматически: ${unmasked.length}`)
+console.log(`${args.dryRun ? '[dry-run] ' : ''}Database: ${args.dryRun ? '(in memory)' : dbFile}`)
+console.log(`In the file: ${records.length}, added: ${created}, skipped as duplicates: ${skipped}`)
+console.log(`Examples where the expression was not found automatically: ${unmasked.length}`)
 if (unmasked.length) console.log(unmasked.join('\n'))
