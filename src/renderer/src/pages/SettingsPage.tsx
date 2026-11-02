@@ -375,26 +375,28 @@ function VoicesPanel() {
  * that a newly installed voice (e.g. Argentine) is really visible to the app, and under which code.
  */
 function DeviceVoices({ voices }: { voices: SpeechSynthesisVoice[] }) {
+  // A plain button and a one-column list: <details> with CSS columns misrendered in iOS Safari.
+  const [open, setOpen] = useState(false)
   const relevant = voices
-    .filter((v) => /^(en|es)/.test(normalizeLang(v.lang)))
+    .filter((v) => /^(en|es)/.test(normalizeLang(v.lang ?? '')))
     .sort((a, b) => normalizeLang(a.lang).localeCompare(normalizeLang(b.lang)) || a.name.localeCompare(b.name))
   return (
-    <details className="device-voices">
-      <summary>
-        All English and Spanish voices on this {IS_PHONE ? 'iPhone' : 'Mac'} ({relevant.length})
-      </summary>
-      {relevant.length === 0 ? (
+    <div className="device-voices">
+      <button type="button" className="link-button" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+        {open ? '▾' : '▸'} All English and Spanish voices on this {IS_PHONE ? 'iPhone' : 'Mac'} ({relevant.length})
+      </button>
+      {!open ? null : relevant.length === 0 ? (
         <p className="muted small">The system has not shared any voices with Recallo yet. Reopen the app and check again.</p>
       ) : (
         <ul className="device-voice-list">
-          {relevant.map((v) => (
-            <li key={v.voiceURI}>
+          {relevant.map((v, i) => (
+            <li key={`${v.voiceURI}-${i}`}>
               <span>{v.name}</span> <span className="muted small">{v.lang}</span>
             </li>
           ))}
         </ul>
       )}
-    </details>
+    </div>
   )
 }
 

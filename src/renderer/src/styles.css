@@ -3303,16 +3303,9 @@ select {
   font-size: 14px;
 }
 
-.device-voices summary {
-  color: var(--accent);
-  cursor: pointer;
-}
-
 .device-voice-list {
   margin: 8px 0 0;
   padding-left: 18px;
-  column-gap: 24px;
-  columns: 2 220px;
 }
 
 /*
