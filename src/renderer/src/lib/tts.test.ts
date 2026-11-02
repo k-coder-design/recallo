@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chooseVoice, playableLangs } from './tts'
+import { chooseVoice, playableLangs, voiceRegion } from './tts'
 
 const voice = (name: string, lang: string) => ({ name, lang, localService: true, default: false, voiceURI: name }) as SpeechSynthesisVoice
 const system = [
@@ -24,10 +24,16 @@ describe('voice choice', () => {
     expect(playableLangs(['es-AR', 'es-ES'], system)).toEqual(new Set(['es-AR', 'es-ES']))
   })
 
-  it('without an Argentine voice only the Spanish variant is spoken; the Argentine one takes the nearest Latin American voice', () => {
+  it('without an Argentine voice the Argentine variant plays with the Mexican stand-in (as on iPhone)', () => {
     const withoutAr = system.filter((v) => v.lang !== 'es-AR')
-    expect(playableLangs(['es-AR', 'es-ES'], withoutAr)).toEqual(new Set(['es-ES']))
-    expect(chooseVoice('es-AR', withoutAr)).toMatchObject({ voice: { name: 'Paulina' }, exact: false })
+    expect(playableLangs(['es-AR', 'es-ES'], withoutAr)).toEqual(new Set(['es-AR', 'es-ES']))
+    expect(chooseVoice('es-AR', withoutAr)).toMatchObject({ voice: { name: 'Paulina' }, exact: false, near: true })
+    expect(voiceRegion(chooseVoice('es-AR', withoutAr).voice)).toBe('Mexican')
+  })
+
+  it('with only Spanish (Spain) voices the Argentine variant is not played: it would sound like Spain', () => {
+    const spainOnly = system.filter((v) => v.lang === 'es-ES')
+    expect(playableLangs(['es-AR', 'es-ES'], spainOnly)).toEqual(new Set(['es-ES']))
   })
 
   it('matches language codes written differently on iOS (es_AR, es-ar)', () => {

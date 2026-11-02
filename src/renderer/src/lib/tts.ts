@@ -22,6 +22,23 @@ export interface VoiceChoice {
   voice: SpeechSynthesisVoice | null
   /** true — a voice of exactly this region; false — the nearest available. */
   exact: boolean
+  /** A stand-in from a nearby region (FALLBACKS): e.g. the Mexican voice for Argentine Spanish. */
+  near: boolean
+}
+
+/** Region names for stand-in voices, as shown next to them: "Mexican voice". */
+const REGION_NAMES: Record<string, string> = {
+  'es-uy': 'Uruguayan',
+  'es-419': 'Latin American',
+  'es-us': 'US Spanish',
+  'es-mx': 'Mexican',
+  'es-co': 'Colombian',
+  'es-cl': 'Chilean'
+}
+
+/** "Mexican" for a stand-in voice from Mexico; null if the region has no name here. */
+export function voiceRegion(voice: SpeechSynthesisVoice | null): string | null {
+  return voice ? (REGION_NAMES[normalizeLang(voice.lang)] ?? null) : null
 }
 
 /** Language codes as one form: iOS and macOS may report "es_AR", "es-ar" or "es-AR" for the same voice. */
@@ -44,24 +61,29 @@ const best = bestVoice
 export function chooseVoice(lang: string, voices: SpeechSynthesisVoice[]): VoiceChoice {
   const ofLang = (code: string) => voices.filter((v) => normalizeLang(v.lang) === normalizeLang(code))
   const exact = best(ofLang(lang))
-  if (exact) return { voice: exact, exact: true }
+  if (exact) return { voice: exact, exact: true, near: false }
   for (const code of FALLBACKS[lang] ?? []) {
     const near = best(ofLang(code))
-    if (near) return { voice: near, exact: false }
+    if (near) return { voice: near, exact: false, near: true }
   }
   const prefix = normalizeLang(lang).split('-')[0] ?? lang
-  return { voice: best(voices.filter((v) => normalizeLang(v.lang).split('-')[0] === prefix)), exact: false }
+  return { voice: best(voices.filter((v) => normalizeLang(v.lang).split('-')[0] === prefix)), exact: false, near: false }
 }
 
 /**
- * Which pronunciations to speak (D47): if there are several, only those that have
- * a voice of exactly their region installed — a foreign voice sounds the same for every variant.
- * If there are none, the primary variant is spoken with the nearest voice. A single variant is always spoken.
+ * Which pronunciations to speak (D47, D61): if there are several, those that have a voice of exactly their
+ * region, or a stand-in from a nearby region (Argentine → Mexican: the same "s" for c/z) — any other voice
+ * of the language would sound like the other variant. If there are none, the primary variant is spoken with
+ * the nearest voice. A single variant is always spoken. iPhone shares only built-in voices with web apps,
+ * so there the Argentine variant plays with the Mexican Paulina.
  */
 export function playableLangs(langs: string[], voices: SpeechSynthesisVoice[]): Set<string> {
   if (langs.length <= 1) return new Set(langs)
-  const exact = langs.filter((lang) => chooseVoice(lang, voices).exact)
-  return new Set(exact.length > 0 ? exact : langs.slice(0, 1))
+  const playable = langs.filter((lang) => {
+    const choice = chooseVoice(lang, voices)
+    return choice.exact || choice.near
+  })
+  return new Set(playable.length > 0 ? playable : langs.slice(0, 1))
 }
 
 /** The system voice list: in Chromium it arrives asynchronously (voiceschanged). */

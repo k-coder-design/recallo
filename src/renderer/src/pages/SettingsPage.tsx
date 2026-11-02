@@ -3,7 +3,7 @@ import type { AgentApiState, AutoBackupState, BackupSummary, NewWordsToday, Open
 import { ALT_ACCENTS, PRIMARY_ACCENTS, type Accent } from '../../../shared/accents'
 import { Modal } from '../components/Modal'
 import { SpeakButton } from '../components/SpeakButton'
-import { canSpeak, chooseVoice, normalizeLang, playableLangs, useVoices } from '../lib/tts'
+import { canSpeak, chooseVoice, normalizeLang, playableLangs, useVoices, voiceRegion } from '../lib/tts'
 import { call, errorMessage } from '../lib/api'
 import { backupAge, markBackedUp } from '../lib/backupReminder'
 import { IS_PHONE } from '../lib/platform'
@@ -328,7 +328,8 @@ function VoicesPanel() {
       ) : (
         <ul className="voice-list">
           {accents.map((accent) => {
-            const { voice, exact } = chooseVoice(accent.lang, voices)
+            const { voice, exact, near } = chooseVoice(accent.lang, voices)
+            const region = near ? voiceRegion(voice) : null
             return (
               <li key={accent.lang} className="voice-row">
                 <span>{`${accent.flag}\u00a0${accent.label}`}</span>
@@ -338,18 +339,32 @@ function VoicesPanel() {
                   ) : voice ? (
                     <>
                       <span className="voice-name">{voice.name}</span> <span className="muted small">{voice.lang}</span>
+                      {region && <span className="voice-standin">{region} voice</span>}
                     </>
                   ) : (
                     <span className="muted">No voice</span>
                   )}
                 </span>
                 {playable.has(accent.lang) ? <SpeakButton text={SAMPLES[accent.lang] ?? accent.label} lang={accent.lang} /> : <span />}
-                {!exact && (
+                {!exact && IS_PHONE && (
+                  <p className="voice-missing">
+                    iPhone does not share downloaded voices (like Isabela or Diego) with web apps, so {accent.label} (
+                    {accent.lang}) has no own voice here.{' '}
+                    {playable.has(accent.lang) && voice
+                      ? `The ${region ?? 'nearest'} voice ${voice.name} plays instead${
+                          region === 'Mexican' && accent.lang === 'es-AR'
+                            ? ': it says c/z as "s" like in Argentina, but not the Argentine "sh" for ll/y.'
+                            : '.'
+                        }`
+                      : 'Cards play only the other pronunciation.'}
+                  </p>
+                )}
+                {!exact && !IS_PHONE && (
                   <p className="voice-missing">
                     No voice for {accent.label} ({accent.lang}) is installed
                     {playable.has(accent.lang)
                       ? voice
-                        ? `, so ${voice.name} (${voice.lang}) plays instead.`
+                        ? `, so ${region ? `the ${region} voice ` : ''}${voice.name} (${voice.lang}) plays instead.`
                         : '.'
                       : ', so cards play only the other pronunciation.'}{' '}
                     To add one, open{' '}

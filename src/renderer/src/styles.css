@@ -3342,3 +3342,16 @@ body:has(.app.in-session) .update-toast {
   top: calc(env(safe-area-inset-top) + 8px);
   bottom: auto;
 }
+
+/* A stand-in voice from another region, named next to its button: "Mexican voice" (D61). */
+.voice-standin {
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
